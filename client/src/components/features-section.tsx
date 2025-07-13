@@ -1,3 +1,4 @@
+import React from "react";
 import { Shield, Smartphone, Rocket, Infinity, UserX, Clock } from "lucide-react";
 
 const features = [

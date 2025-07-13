@@ -1,3 +1,4 @@
+import React from "react";
 const stats = [
   { value: "2.5M+", label: "Files Shared Daily" },
   { value: "150+", label: "Countries Served" },

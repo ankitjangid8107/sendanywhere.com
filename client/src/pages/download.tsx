@@ -1,9 +1,10 @@
+import React from "react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "../components/ui/button";
+import { Card, CardContent } from "../components/ui/card";
 import { Download as DownloadIcon, FileText, AlertCircle } from "lucide-react";
-import { formatFileSize } from "@/lib/file-utils";
+import { formatFileSize } from "../lib/file-utils";
 
 export default function Download() {
   const { code } = useParams<{ code: string }>();

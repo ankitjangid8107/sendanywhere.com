@@ -1,15 +1,17 @@
+import React from "react";
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { useMutation } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Button } from "./ui/button";
+import { Progress } from "./ui/progress";
 import { X, Upload, Cloud, Rocket } from "lucide-react";
-import { formatFileSize } from "@/lib/file-utils";
-import { useToast } from "@/hooks/use-toast";
+import { formatFileSize } from "../lib/file-utils";
+import { useToast } from "../hooks/use-toast";
 import ShareSuccessModal from "./share-success-modal";
 
-interface FileWithPreview extends File {
+interface FileWithPreview {
   id: string;
+  file: File;
 }
 
 export default function FileUpload() {
@@ -21,27 +23,18 @@ export default function FileUpload() {
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       console.log('Starting upload for file:', file.name, 'Size:', file.size);
-      
       const formData = new FormData();
       formData.append('file', file);
-      
       console.log('FormData created, file appended');
-
       const xhr = new XMLHttpRequest();
-      
       return new Promise((resolve, reject) => {
         xhr.upload.addEventListener('progress', (event) => {
           if (event.lengthComputable) {
             const progress = Math.round((event.loaded / event.total) * 100);
-            console.log('Upload progress:', progress + '%');
             setUploadProgress(progress);
           }
         });
-
         xhr.addEventListener('load', () => {
-          console.log('XHR load event, status:', xhr.status);
-          console.log('Response:', xhr.responseText);
-          
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               const response = JSON.parse(xhr.responseText);
@@ -53,16 +46,11 @@ export default function FileUpload() {
             reject(new Error(`HTTP ${xhr.status}: ${xhr.responseText}`));
           }
         });
-
         xhr.addEventListener('error', () => {
-          console.log('XHR error event');
           reject(new Error('Network error'));
         });
-
-        console.log('Opening XHR connection to /api/upload');
         xhr.open('POST', '/api/upload');
         xhr.send(formData);
-        console.log('FormData sent');
       });
     },
     onSuccess: (data) => {
@@ -75,7 +63,6 @@ export default function FileUpload() {
       });
     },
     onError: (error) => {
-      console.error('Upload error:', error);
       setUploadProgress(0);
       toast({
         title: "Upload failed",
@@ -87,8 +74,8 @@ export default function FileUpload() {
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const filesWithId = acceptedFiles.map(file => ({
-      ...file,
-      id: Math.random().toString(36).substr(2, 9)
+      id: Math.random().toString(36).substr(2, 9),
+      file,
     }));
     setFiles(prev => [...prev, ...filesWithId]);
   }, []);
@@ -100,7 +87,6 @@ export default function FileUpload() {
     noClick: false,
     noKeyboard: false,
     onDropRejected: (fileRejections) => {
-      console.log('Files rejected:', fileRejections);
       fileRejections.forEach((rejection) => {
         toast({
           title: "File rejected",
@@ -110,7 +96,7 @@ export default function FileUpload() {
       });
     },
     onDropAccepted: (acceptedFiles) => {
-      console.log('Files accepted:', acceptedFiles.map(f => ({ name: f.name, size: f.size })));
+      // Already handled in onDrop
     },
   });
 
@@ -120,10 +106,8 @@ export default function FileUpload() {
 
   const handleUpload = () => {
     if (files.length > 0) {
-      console.log('Attempting to upload file:', files[0].name, 'Size:', files[0].size);
-      uploadMutation.mutate(files[0]); // For now, upload first file only
+      uploadMutation.mutate(files[0].file); // Upload the original File object
     } else {
-      console.log('No files to upload');
       toast({
         title: "No files selected",
         description: "Please select a file to upload first.",
@@ -139,7 +123,6 @@ export default function FileUpload() {
           <h3 className="text-2xl font-bold mb-2">Upload Your Files</h3>
           <p className="text-gray-600">Drag and drop or click to select files</p>
         </div>
-
         <div
           {...getRootProps()}
           className={`upload-zone-3d border-3 border-dashed rounded-xl p-12 text-center mb-6 cursor-pointer transition-all duration-300 ${
@@ -157,7 +140,6 @@ export default function FileUpload() {
           </p>
           <p className="text-gray-500">or click to browse (up to 30GB)</p>
         </div>
-
         {uploadMutation.isPending && (
           <div className="progress-3d mb-4">
             <Progress value={uploadProgress} className="h-3" />
@@ -166,20 +148,19 @@ export default function FileUpload() {
             </p>
           </div>
         )}
-
         {files.length > 0 && (
           <div className="space-y-3 mb-6">
-            {files.map((file) => (
-              <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            {files.map((item) => (
+              <div key={item.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <Upload className="w-5 h-5 text-[var(--primary)]" />
-                  <span className="font-medium">{file.name}</span>
-                  <span className="text-sm text-gray-500">{formatFileSize(file.size)}</span>
+                  <span className="font-medium">{item.file.name}</span>
+                  <span className="text-sm text-gray-500">{formatFileSize(item.file.size)}</span>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => removeFile(file.id)}
+                  onClick={() => removeFile(item.id)}
                   className="text-red-500 hover:text-red-700"
                 >
                   <X className="w-4 h-4" />
@@ -188,7 +169,6 @@ export default function FileUpload() {
             ))}
           </div>
         )}
-
         <Button
           onClick={handleUpload}
           disabled={files.length === 0 || uploadMutation.isPending}
@@ -198,7 +178,6 @@ export default function FileUpload() {
           Share Files
         </Button>
       </div>
-
       {successData && (
         <ShareSuccessModal
           data={successData}

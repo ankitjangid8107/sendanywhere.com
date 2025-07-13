@@ -1,6 +1,7 @@
+import React from "react";
 import { useState } from "react";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
+import { Button } from "./ui/button";
 import { Menu, X } from "lucide-react";
 
 export default function Navigation() {

@@ -1,7 +1,8 @@
+import React from "react";
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 import { Key, Link as LinkIcon } from "lucide-react";
 
 export default function DownloadCodeInput() {

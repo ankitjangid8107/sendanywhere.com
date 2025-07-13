@@ -1,4 +1,5 @@
-import { Button } from "@/components/ui/button";
+import React from "react";
+import { Button } from "./ui/button";
 import { Upload, Download } from "lucide-react";
 import FileUpload from "./file-upload";
 

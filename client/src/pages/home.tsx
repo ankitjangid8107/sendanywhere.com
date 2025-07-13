@@ -1,13 +1,14 @@
+import React from "react";
 import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
-import Navigation from "@/components/navigation";
-import HeroSection from "@/components/hero-section";
-import FeaturesSection from "@/components/features-section";
-import MobileAppsSection from "@/components/mobile-apps-section";
-import StatsSection from "@/components/stats-section";
-import Footer from "@/components/footer";
-import FloatingActionButton from "@/components/floating-action-button";
-import DownloadCodeInput from "@/components/download-code-input";
+import Navigation from "../components/navigation";
+import HeroSection from "../components/hero-section";
+import FeaturesSection from "../components/features-section";
+import MobileAppsSection from "../components/mobile-apps-section";
+import StatsSection from "../components/stats-section";
+import Footer from "../components/footer";
+import FloatingActionButton from "../components/floating-action-button";
+import DownloadCodeInput from "../components/download-code-input";
 
 export default function Home() {
   const [location, setLocation] = useLocation();
