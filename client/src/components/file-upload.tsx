@@ -20,8 +20,12 @@ export default function FileUpload() {
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
+      console.log('Starting upload for file:', file.name, 'Size:', file.size);
+      
       const formData = new FormData();
       formData.append('file', file);
+      
+      console.log('FormData created, file appended');
 
       const xhr = new XMLHttpRequest();
       
@@ -29,24 +33,36 @@ export default function FileUpload() {
         xhr.upload.addEventListener('progress', (event) => {
           if (event.lengthComputable) {
             const progress = Math.round((event.loaded / event.total) * 100);
+            console.log('Upload progress:', progress + '%');
             setUploadProgress(progress);
           }
         });
 
         xhr.addEventListener('load', () => {
+          console.log('XHR load event, status:', xhr.status);
+          console.log('Response:', xhr.responseText);
+          
           if (xhr.status >= 200 && xhr.status < 300) {
-            resolve(JSON.parse(xhr.responseText));
+            try {
+              const response = JSON.parse(xhr.responseText);
+              resolve(response);
+            } catch (e) {
+              reject(new Error('Invalid JSON response'));
+            }
           } else {
-            reject(new Error(xhr.responseText));
+            reject(new Error(`HTTP ${xhr.status}: ${xhr.responseText}`));
           }
         });
 
         xhr.addEventListener('error', () => {
+          console.log('XHR error event');
           reject(new Error('Network error'));
         });
 
+        console.log('Opening XHR connection to /api/upload');
         xhr.open('POST', '/api/upload');
         xhr.send(formData);
+        console.log('FormData sent');
       });
     },
     onSuccess: (data) => {
@@ -81,7 +97,10 @@ export default function FileUpload() {
     onDrop,
     multiple: true,
     maxSize: 30 * 1024 * 1024 * 1024, // 30GB
+    noClick: false,
+    noKeyboard: false,
     onDropRejected: (fileRejections) => {
+      console.log('Files rejected:', fileRejections);
       fileRejections.forEach((rejection) => {
         toast({
           title: "File rejected",
@@ -89,6 +108,9 @@ export default function FileUpload() {
           variant: "destructive",
         });
       });
+    },
+    onDropAccepted: (acceptedFiles) => {
+      console.log('Files accepted:', acceptedFiles.map(f => ({ name: f.name, size: f.size })));
     },
   });
 
@@ -98,7 +120,15 @@ export default function FileUpload() {
 
   const handleUpload = () => {
     if (files.length > 0) {
+      console.log('Attempting to upload file:', files[0].name, 'Size:', files[0].size);
       uploadMutation.mutate(files[0]); // For now, upload first file only
+    } else {
+      console.log('No files to upload');
+      toast({
+        title: "No files selected",
+        description: "Please select a file to upload first.",
+        variant: "destructive",
+      });
     }
   };
 

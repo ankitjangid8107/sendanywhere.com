@@ -9,13 +9,21 @@ import { nanoid } from "nanoid";
 
 // Configure multer for file uploads
 const uploadsDir = path.join(process.cwd(), 'uploads');
+
+// Ensure uploads directory exists
+import * as fs from 'fs';
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 const upload = multer({
   dest: uploadsDir,
   limits: {
     fileSize: 30 * 1024 * 1024 * 1024, // 30GB limit
+    fieldSize: 30 * 1024 * 1024 * 1024, // 30GB field size
   },
   fileFilter: (req, file, cb) => {
-    // Accept all file types
+    console.log('File filter called:', file.originalname, file.mimetype);
     cb(null, true);
   },
 });
@@ -31,46 +39,59 @@ function generateDownloadCode(): string {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Upload file
-  app.post("/api/upload", upload.single('file'), async (req, res) => {
-    try {
-      console.log('Upload request received:', req.file);
-      if (!req.file) {
-        console.log('No file in request');
-        return res.status(400).json({ message: "No file uploaded" });
+  app.post("/api/upload", (req, res) => {
+    console.log('Upload endpoint hit');
+    console.log('Headers:', req.headers['content-type']);
+    
+    upload.single('file')(req, res, async (err) => {
+      console.log('Multer callback called');
+      if (err) {
+        console.error('Multer error:', err);
+        return res.status(400).json({ message: `Upload error: ${err.message}` });
       }
+      
+      try {
+        console.log('Upload request received:', req.file);
+        console.log('Form body:', req.body);
+        
+        if (!req.file) {
+          console.log('No file in request');
+          return res.status(400).json({ message: "No file uploaded" });
+        }
 
-      const downloadCode = generateDownloadCode();
-      const downloadLink = `${req.protocol}://${req.get('host')}/d/${downloadCode}`;
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+        const downloadCode = generateDownloadCode();
+        const downloadLink = `${req.protocol}://${req.get('host')}/d/${downloadCode}`;
+        const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-      const fileData = {
-        filename: req.file.filename,
-        originalName: req.file.originalname,
-        mimeType: req.file.mimetype,
-        size: req.file.size,
-        downloadCode,
-        downloadLink,
-        expiresAt,
-      };
+        const fileData = {
+          filename: req.file.filename,
+          originalName: req.file.originalname,
+          mimeType: req.file.mimetype,
+          size: req.file.size,
+          downloadCode,
+          downloadLink,
+          expiresAt,
+        };
 
-      const validatedFile = insertFileSchema.parse(fileData);
-      const file = await storage.createFile(validatedFile);
+        const validatedFile = insertFileSchema.parse(fileData);
+        const file = await storage.createFile(validatedFile);
 
-      res.json({
-        id: file.id,
-        downloadCode: file.downloadCode,
-        downloadLink: file.downloadLink,
-        expiresAt: file.expiresAt,
-        filename: file.originalName,
-        size: file.size,
-      });
-    } catch (error) {
-      if (error instanceof ZodError) {
-        return res.status(400).json({ message: "Invalid file data", errors: error.errors });
+        res.json({
+          id: file.id,
+          downloadCode: file.downloadCode,
+          downloadLink: file.downloadLink,
+          expiresAt: file.expiresAt,
+          filename: file.originalName,
+          size: file.size,
+        });
+      } catch (error) {
+        if (error instanceof ZodError) {
+          return res.status(400).json({ message: "Invalid file data", errors: error.errors });
+        }
+        console.error("Upload error:", error);
+        res.status(500).json({ message: "Internal server error" });
       }
-      console.error("Upload error:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
+    });
   });
 
   // Get file by download code
