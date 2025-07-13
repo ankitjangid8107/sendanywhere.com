@@ -10,6 +10,9 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      borderColor: {
+        DEFAULT: "var(--border)",
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
@@ -41,7 +44,6 @@ export default {
           DEFAULT: "var(--destructive)",
           foreground: "var(--destructive-foreground)",
         },
-        border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
         chart: {
