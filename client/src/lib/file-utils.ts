@@ -20,8 +20,8 @@ export function generateFileIcon(mimeType: string): string {
   return 'file';
 }
 
-export function validateFileSize(file: File, maxSizeInMB: number = 100): boolean {
-  const maxSizeInBytes = maxSizeInMB * 1024 * 1024;
+export function validateFileSize(file: File, maxSizeInGB: number = 30): boolean {
+  const maxSizeInBytes = maxSizeInGB * 1024 * 1024 * 1024;
   return file.size <= maxSizeInBytes;
 }
 

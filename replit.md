@@ -7,6 +7,8 @@ This is a modern file sharing web application built with a React frontend and Ex
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Creator/Developer: Ankit Jangid
+File size limit: Increased to 30GB maximum upload size
 
 ## System Architecture
 
@@ -94,8 +96,9 @@ The application defines two main entities:
 
 ### Configuration
 - **Environment Variables**: DATABASE_URL for PostgreSQL connection
-- **File Limits**: 100MB maximum file size
+- **File Limits**: 30GB maximum file size (increased from 100MB)
 - **Session Configuration**: PostgreSQL-backed sessions for scalability
 - **CORS**: Configured for cross-origin requests if needed
+- **Branding**: Updated to "FileFluxTransfer by Ankit Jangid"
 
 The application is designed to be easily deployable to platforms like Replit, Heroku, or similar Node.js hosting services with PostgreSQL add-ons.

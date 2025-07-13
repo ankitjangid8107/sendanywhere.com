@@ -40,7 +40,7 @@ export default function FeaturesSection() {
         <div className="text-center mb-16">
           <h2 className="text-3xl lg:text-4xl font-bold mb-4">
             Why Choose{" "}
-            <span className="gradient-bg bg-clip-text text-transparent">FileShare Pro?</span>
+            <span className="gradient-bg bg-clip-text text-transparent">FileFluxTransfer?</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Professional-grade file sharing with enterprise security and consumer simplicity

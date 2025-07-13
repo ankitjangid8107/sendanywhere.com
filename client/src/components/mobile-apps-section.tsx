@@ -16,7 +16,7 @@ export default function MobileAppsSection() {
           {/* Content */}
           <div className="mb-12 lg:mb-0">
             <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-              Take FileShare Pro{" "}
+              Take FileFluxTransfer{" "}
               <span className="gradient-bg bg-clip-text text-transparent">On The Go</span>
             </h2>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
@@ -66,7 +66,7 @@ export default function MobileAppsSection() {
                       <div className="w-16 h-16 bg-white/20 rounded-2xl mx-auto mb-4 flex items-center justify-center">
                         <Apple className="w-8 h-8" />
                       </div>
-                      <p className="text-sm font-medium">FileShare Pro</p>
+                      <p className="text-sm font-medium">FileFluxTransfer</p>
                       <p className="text-xs opacity-80">iOS App</p>
                     </div>
                   </div>
@@ -80,7 +80,7 @@ export default function MobileAppsSection() {
                       <div className="w-16 h-16 bg-white/20 rounded-2xl mx-auto mb-4 flex items-center justify-center">
                         <Play className="w-8 h-8" />
                       </div>
-                      <p className="text-sm font-medium">FileShare Pro</p>
+                      <p className="text-sm font-medium">FileFluxTransfer</p>
                       <p className="text-xs opacity-80">Android App</p>
                     </div>
                   </div>

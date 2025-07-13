@@ -13,7 +13,7 @@ export default function Navigation() {
           <div className="flex items-center">
             <Link href="/" className="flex-shrink-0">
               <h1 className="text-2xl font-bold gradient-bg bg-clip-text text-transparent">
-                FileShare Pro
+                FileFluxTransfer
               </h1>
             </Link>
           </div>

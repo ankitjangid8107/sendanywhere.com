@@ -7,10 +7,10 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8 mb-12">
           <div className="md:col-span-2">
             <h3 className="text-2xl font-bold mb-4 gradient-bg bg-clip-text text-transparent">
-              FileShare Pro
+              FileFluxTransfer
             </h3>
             <p className="text-gray-400 mb-6 leading-relaxed">
-              The most secure and user-friendly file sharing platform. 
+              Created by Ankit Jangid. The most secure and user-friendly file sharing platform. 
               Share files instantly across all your devices with enterprise-grade security.
             </p>
             <div className="flex space-x-4">
@@ -52,7 +52,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 mb-4 md:mb-0">
-            © 2024 FileShare Pro. All rights reserved.
+            © 2024 FileFluxTransfer by Ankit Jangid. All rights reserved.
           </p>
           <div className="flex items-center space-x-6 text-gray-400">
             <span>Available on:</span>

@@ -29,7 +29,7 @@ export default function HeroSection({ onScrollToReceive }: HeroSectionProps) {
               <span className="gradient-bg bg-clip-text text-transparent block">Instantly & Securely</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Send files of any size to anyone, anywhere. No registration required. 
+              Send files up to 30GB to anyone, anywhere. No registration required. 
               Your files are encrypted and automatically deleted after download.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">

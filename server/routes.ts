@@ -12,7 +12,11 @@ const uploadsDir = path.join(process.cwd(), 'uploads');
 const upload = multer({
   dest: uploadsDir,
   limits: {
-    fileSize: 100 * 1024 * 1024, // 100MB limit
+    fileSize: 30 * 1024 * 1024 * 1024, // 30GB limit
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept all file types
+    cb(null, true);
   },
 });
 
@@ -29,7 +33,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Upload file
   app.post("/api/upload", upload.single('file'), async (req, res) => {
     try {
+      console.log('Upload request received:', req.file);
       if (!req.file) {
+        console.log('No file in request');
         return res.status(400).json({ message: "No file uploaded" });
       }
 

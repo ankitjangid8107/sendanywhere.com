@@ -80,6 +80,16 @@ export default function FileUpload() {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     multiple: true,
+    maxSize: 30 * 1024 * 1024 * 1024, // 30GB
+    onDropRejected: (fileRejections) => {
+      fileRejections.forEach((rejection) => {
+        toast({
+          title: "File rejected",
+          description: `${rejection.file.name}: ${rejection.errors.map(e => e.message).join(', ')}`,
+          variant: "destructive",
+        });
+      });
+    },
   });
 
   const removeFile = (id: string) => {
@@ -115,7 +125,7 @@ export default function FileUpload() {
           <p className="text-lg font-semibold text-[var(--primary)] mb-2">
             {isDragActive ? 'Drop files here' : 'Drop files here'}
           </p>
-          <p className="text-gray-500">or click to browse</p>
+          <p className="text-gray-500">or click to browse (up to 30GB)</p>
         </div>
 
         {uploadMutation.isPending && (
