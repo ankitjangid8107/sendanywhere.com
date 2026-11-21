@@ -9,8 +9,8 @@ Local-network file transfer. **No SQL Server, no Node.js, no build step.** Pure 
    *World Wide Web Services → Application Development Features* tick **ASP.NET 4.x** (and .NET Extensibility 4.x, ISAPI Extensions/Filters).
 2. Copy this `iis-app` folder to e.g. `C:\inetpub\sendanywhere`.
 3. IIS Manager → *Sites → Add Website* → Physical path = that folder, Port = `8080` (any). App pool: **.NET CLR v4.0, Integrated**.
-4. Give write permission on `App_Data` to the app pool identity:
-   `icacls C:\inetpub\sendanywhere\App_Data /grant "IIS AppPool\<PoolName>":(OI)(CI)M`
+4. Give write permission on `iis-app\App_Data` to the app pool identity (or simply to the `IIS_IUSRS` group):
+   `icacls "<folder>\App_Data" /grant "IIS_IUSRS":(OI)(CI)M`
 5. Allow the port in Windows Firewall:
    `netsh advfirewall firewall add rule name="SendAnywhere" dir=in action=allow protocol=TCP localport=8080`
 6. Other devices on the same Wi-Fi/LAN open `http://<server-ip>:8080` (find IP with `ipconfig`).
@@ -20,3 +20,8 @@ Local-network file transfer. **No SQL Server, no Node.js, no build step.** Pure 
 - Download uses IIS `TransmitFile` (kernel-mode, zero-copy).
 - Metadata is JSON in `App_Data/transfers` (hidden from web). Transfers auto-delete after 24 h.
 - Receiver enters 6-char code or opens the share link `?code=XXXXXX`.
+
+## Troubleshooting
+- **403.14 Forbidden**: the site's physical path must be the `iis-app` folder (or the repo root, which now redirects to `iis-app/`).
+- **"Server API not running" / 404.3 on transfer.ashx**: Windows Features → IIS → Application Development Features → tick **ASP.NET 4.x**, **.NET Extensibility 4.x**, **ISAPI Extensions**, **ISAPI Filters**. Then run `iisreset`.
+- **Access denied when uploading**: run the `icacls` command from step 4 on `iis-app\App_Data`.

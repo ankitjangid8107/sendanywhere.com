@@ -226,7 +226,7 @@ function render(){
 $('list').onclick=e=>{const b=e.target.closest('.x');if(b){files.splice(+b.dataset.i,1);render()}};
 $('clearBtn').onclick=e=>{e.preventDefault();if(!busy){files=[];render()}};
 
-async function j(url,opt={}){const r=await fetch(url,opt);const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
+async function j(url,opt={}){const r=await fetch(url,opt);const ct=r.headers.get('content-type')||'';if(!ct.includes('json'))throw new Error('Server API not running (HTTP '+r.status+'). Enable ASP.NET 4.x in Windows Features and give the app pool write access to iis-app\\App_Data.');const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
 
 // send
 $('sendBtn').onclick=async()=>{

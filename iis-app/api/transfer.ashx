@@ -19,7 +19,7 @@ public class TransferHandler : IHttpHandler
 
     static string Root(HttpContext c)
     {
-        var p = c.Server.MapPath("~/App_Data/transfers");
+        var p = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(c.Request.PhysicalPath), "..", "App_Data", "transfers"));
         Directory.CreateDirectory(p);
         return p;
     }
