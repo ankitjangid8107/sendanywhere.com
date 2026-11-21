@@ -32,6 +32,19 @@ Right-click **setup-safe.bat** → Run as administrator (pure batch, no PowerShe
 - **Admin panel**: the first admin is created on the server PC (http://localhost). The admin can set the user time limit, turn sign-ups on or off, manage users and see disk usage. Admins can keep their own files for minutes, hours, days or years.
 - Microsoft Defender scan with live status (information only — downloads are never blocked), PIN for quick sends, brute-force lockout, dark/light theme, mobile layout, fully offline.
 
+### Admin features
+- **Multiple admins**: Admin → Users → "Create user or admin". Admin names are never shown to normal users (shared folders show "Administrator").
+- **Server files**: Admin → Server files lets an admin on **any LAN PC** browse the server PC's drives, then download, upload (drag & drop, up to 50 GB, parallel chunks), create folders, rename and delete. To reach all drives, answer **Y** to "Allow full drive access" in `setup-safe.bat` (the app pool then runs as LocalSystem). The Windows folder and the app's own data folder cannot be deleted.
+- **All shares**: see and delete every active transfer and folder.
+
+### Password safety
+- After **10 wrong passwords** the account (user or admin) is **locked**. To unlock it, reset the password with one of these:
+  1. the **recovery key** shown at sign-up
+  2. the **mobile number + security answer** (set at sign-up or under the user menu → Recovery options)
+  3. an **admin** (Admin → Users → Unlock + reset)
+  4. **Emergency reset on the server PC**: run `reset-password.bat` as administrator, then within 15 minutes open the site on that PC → Login → Forgot? → "Server PC". This also works when the only admin has forgotten everything.
+- Wrong passwords never reset an account on their own. Otherwise anyone could take over an account by typing 10 wrong passwords.
+
 All data is stored in `iis-app\App_Data` (users and settings are JSON files; uploads are in `boxes`). A background job runs every minute and deletes expired files.
 
 ## Port forwarding / internet (optional, off by default)

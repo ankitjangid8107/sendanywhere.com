@@ -101,6 +101,14 @@ footer a{color:var(--text);font-weight:600;text-decoration:none}footer a:hover{c
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;transition:.3s;z-index:50;pointer-events:none}
 .toast.on{transform:translate(-50%,0);opacity:1}
 .hidden{display:none!important}
+.asub{display:none}.asub.on{display:block;animation:rise .3s ease both}
+.crumbs{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:14px 0 4px;font-size:13px}.crumbs button{border:0;background:rgba(127,127,127,.1);color:var(--text);padding:5px 10px;border-radius:8px;cursor:pointer;font-weight:600}.crumbs span{color:var(--muted)}
+.drives{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-top:12px}
+.drive{padding:16px;border-radius:14px;border:1px solid var(--line);background:rgba(127,127,127,.05);cursor:pointer;text-align:left;color:var(--text)}.drive:hover{border-color:var(--a)}
+.drive b{font-size:16px}.drive small{display:block;color:var(--muted);margin-top:4px}.drive .bar{height:6px;margin-top:10px}
+.ftable tr.row:hover td{background:rgba(127,127,127,.06)}.ftable .nm-btn{border:0;background:none;color:var(--text);font-weight:600;cursor:pointer;padding:0;text-align:left;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ftable .act{border:0;background:none;color:var(--muted);cursor:pointer;font-size:15px;padding:4px 6px;border-radius:6px}.ftable .act:hover{color:var(--text);background:rgba(127,127,127,.12)}
+.fmdrop{outline:2px dashed var(--a);outline-offset:4px;border-radius:12px}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.opts label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
 select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}select.f option{color:#0f172a}
 .addrow{display:flex;gap:8px;margin-top:10px}.addrow .btn{flex:1;padding:10px;font-size:13px}
@@ -177,6 +185,7 @@ select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,t
     <button data-go="folders">📁 My folders</button>
     <button data-go="admin" class="adminOnly hidden">🛠️ Admin panel</button>
     <button id="chgPwBtn">🔑 Change password</button>
+    <button id="secBtn">🛡️ Recovery options</button>
     <button id="logoutBtn">↩ Log out</button>
   </div></div>
 </div></nav>
@@ -281,21 +290,49 @@ select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,t
   <!-- ============ ADMIN ============ -->
   <div class="view" id="v-admin">
     <div class="section-title"><h2>Admin panel</h2><button class="btn ghost" id="admRefresh" style="padding:8px 14px">↻ Refresh</button></div>
-    <div class="statgrid" id="admStats"></div>
-    <section class="card" style="margin-top:16px">
-      <h2><span class="ic">⚙</span>Settings</h2>
-      <div class="opts">
-        <div><label>Maximum file time for users</label><div class="inline"><input class="f" id="admMaxNum" type="number" min="1" value="60"><select class="f" id="admMaxUnit"><option value="1">minutes</option><option value="60">hours</option><option value="1440">days</option><option value="525600">years</option></select></div></div>
-        <div><label>&nbsp;</label><label class="switch" style="margin:0"><input type="checkbox" id="admSignup"> Allow new users to sign up</label></div>
-      </div>
-      <p class="sub" style="margin:8px 0 0">Recommended: 60 minutes. Admin accounts can always choose any time (minutes to years) for their own files.</p>
-      <button class="btn" id="admSave" style="width:100%;margin-top:12px">Save settings</button>
-      <div class="msg" id="admMsg"></div>
-    </section>
-    <section class="card" style="margin-top:16px">
-      <h2><span class="ic">👥</span>Users</h2>
-      <table class="ftable" id="admUsers"></table>
-    </section>
+    <div class="seg" id="admSeg" style="max-width:640px"><button data-s="overview" class="on">📊 Overview</button><button data-s="users">👥 Users</button><button data-s="shares">🔗 Shares</button><button data-s="files">🗂️ Server files</button></div>
+    <div class="asub on" id="as-overview" style="margin-top:14px">
+      <div class="statgrid" id="admStats"></div>
+      <section class="card" style="margin-top:16px">
+        <h2><span class="ic">⚙</span>Settings</h2>
+        <div class="opts">
+          <div><label>Maximum file time for users</label><div class="inline"><input class="f" id="admMaxNum" type="number" min="1" value="60"><select class="f" id="admMaxUnit"><option value="1">minutes</option><option value="60">hours</option><option value="1440">days</option><option value="525600">years</option></select></div></div>
+          <div><label>&nbsp;</label><label class="switch" style="margin:0"><input type="checkbox" id="admSignup"> Allow new users to sign up</label></div>
+        </div>
+        <p class="sub" style="margin:8px 0 0">Recommended: 60 minutes. Admin accounts can always choose any time (minutes to years) for their own files.</p>
+        <button class="btn" id="admSave" style="width:100%;margin-top:12px">Save settings</button>
+        <div class="msg" id="admMsg"></div>
+      </section>
+    </div>
+    <div class="asub" id="as-users" style="margin-top:14px">
+      <section class="card">
+        <h2><span class="ic">＋</span>Create user or admin</h2>
+        <div class="opts">
+          <div><label for="cuUser">Username</label><input class="f" id="cuUser" maxlength="32" autocomplete="off"></div>
+          <div><label for="cuPass">Password</label><input class="f" id="cuPass" type="password" maxlength="128" autocomplete="new-password" placeholder="6+ characters"></div>
+          <div><label for="cuMobile">Mobile number (optional)</label><input class="f" id="cuMobile" inputmode="tel" maxlength="20" placeholder="10-15 digits"></div>
+          <div><label>&nbsp;</label><label class="switch" style="margin:0"><input type="checkbox" id="cuAdmin"> Give admin rights</label></div>
+        </div>
+        <button class="btn" id="cuBtn" style="width:100%;margin-top:12px">Create account</button>
+        <div class="msg" id="cuMsg"></div>
+      </section>
+      <section class="card" style="margin-top:16px"><h2><span class="ic">👥</span>All accounts</h2><p class="sub">Admin accounts are only visible here. Normal users never see admin names.</p><div style="overflow-x:auto"><table class="ftable" id="admUsers"></table></div></section>
+    </div>
+    <div class="asub" id="as-shares" style="margin-top:14px">
+      <section class="card"><h2><span class="ic">🔗</span>All transfers &amp; folders</h2><div style="overflow-x:auto"><table class="ftable" id="admShares"></table></div></section>
+    </div>
+    <div class="asub" id="as-files" style="margin-top:14px">
+      <section class="card">
+        <div class="top folder" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center">
+          <h2 style="margin:0"><span class="ic">🗂️</span>Server PC files</h2>
+          <div class="tools"><button class="btn ghost" id="fmUp">⬆ Up</button><button class="btn ghost" id="fmNew">＋ New folder</button><button class="btn" id="fmUpload">⬆ Upload here</button></div>
+        </div>
+        <div class="crumbs" id="fmCrumbs"></div>
+        <div id="fmBody"></div>
+        <input type="file" id="fmPick" multiple hidden>
+        <p class="sub" style="margin:12px 0 0">Only admins can see this. You can drag &amp; drop files here to upload them to the open folder. Windows folder and this app's data folder cannot be deleted.</p>
+      </section>
+    </div>
   </div>
   <section class="promo">
     <a class="pcard" href="https://tvc0.lovable.app" target="_blank" rel="noopener"><span class="pi">✨</span><span><b>AI Tool</b><small>tvc0.lovable.app</small></span></a>
@@ -323,7 +360,19 @@ select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,t
   <form id="authForm" autocomplete="on">
     <div class="field"><label for="auUser">Username</label><input class="f" id="auUser" autocomplete="username" maxlength="32" required></div>
     <div class="field" id="auPassF"><label for="auPass">Password</label><input class="f" id="auPass" type="password" autocomplete="current-password" maxlength="128"></div>
+    <div class="seg hidden" id="recSeg"><button type="button" data-r="key" class="on">Recovery key</button><button type="button" data-r="mobile">Mobile + answer</button><button type="button" data-r="emergency" class="hidden">Server PC</button></div>
     <div class="field hidden" id="auRecF"><label for="auRec">Recovery key</label><input class="f" id="auRec" placeholder="0000-0000-0000-0000" autocomplete="off"></div>
+    <div class="hidden" id="auMobF">
+      <div class="field"><label for="auMob">Mobile number</label><input class="f" id="auMob" inputmode="tel" maxlength="20" autocomplete="off"></div>
+      <div class="field"><label for="auAns" id="auQ">Security answer</label><input class="f" id="auAns" autocomplete="off"></div>
+    </div>
+    <p class="sub hidden" id="auEmer" style="margin-top:12px">Emergency reset is allowed because <b>reset-password.bat</b> was run on this server PC in the last 15 minutes.</p>
+    <div class="hidden" id="auSecF">
+      <p class="sub" style="margin:14px 0 0">Optional: add a mobile number and a security question. You can use them to reset your password if you lose the recovery key.</p>
+      <div class="field"><label for="auSMob">Mobile number</label><input class="f" id="auSMob" inputmode="tel" maxlength="20" placeholder="10-15 digits" autocomplete="off"></div>
+      <div class="field"><label for="auSQ">Security question</label><select class="f secQ" id="auSQ"></select></div>
+      <div class="field"><label for="auSA">Answer</label><input class="f" id="auSA" autocomplete="off"></div>
+    </div>
     <div class="field hidden" id="auNewF"><label for="auNew">New password</label><input class="f" id="auNew" type="password" autocomplete="new-password" maxlength="128"></div>
     <button class="btn" id="auBtn" style="width:100%;margin-top:16px">Log in</button>
     <p class="sub" id="auHint" style="margin:10px 0 0"></p>
@@ -357,6 +406,20 @@ select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,t
     <div class="field"><label for="pwNew">New password</label><input class="f" id="pwNew" type="password" autocomplete="new-password" placeholder="6+ characters"></div>
     <button class="btn" style="width:100%;margin-top:16px">Update password</button>
     <div class="msg" id="pwMsg"></div>
+  </form>
+</div></div>
+<!-- security settings -->
+<div class="modal" id="mSec"><div class="card">
+  <button class="close" data-close>×</button>
+  <h2>🛡️ Recovery options</h2>
+  <p class="sub" style="margin-top:6px">Used to reset your password if you forget it: mobile number + security answer.</p>
+  <form id="secForm">
+    <div class="field"><label for="seMob">Mobile number</label><input class="f" id="seMob" inputmode="tel" maxlength="20" placeholder="10-15 digits"></div>
+    <div class="field"><label for="seQ">Security question</label><select class="f secQ" id="seQ"></select></div>
+    <div class="field"><label for="seA">Answer</label><input class="f" id="seA" autocomplete="off" placeholder="Leave empty to keep the current answer"></div>
+    <div class="field"><label for="seP">Current password</label><input class="f" id="seP" type="password" autocomplete="current-password"></div>
+    <button class="btn" style="width:100%;margin-top:16px">Save</button>
+    <div class="msg" id="seMsg"></div>
   </form>
 </div></div>
 <!-- generic form dialog -->
@@ -460,23 +523,36 @@ function setMe(m){ME=m||{user:null,admin:false,maxMinutes:ME.maxMinutes||60,need
 $('acctBtn').onclick=e=>{e.stopPropagation();if(!ME.user)return openAuth('login');$('acctMenu').classList.toggle('on')};
 document.addEventListener('click',e=>{if(!e.target.closest('#acctMenu'))$('acctMenu').classList.remove('on')});
 document.querySelectorAll('[data-auth]').forEach(b=>b.onclick=()=>openAuth(b.dataset.auth));
-let authMode='login';
-function openAuth(m){authMode=m;document.querySelectorAll('#authSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+let authMode='login',recMethod='key';
+const QUESTIONS=['What is your mother\'s maiden name?','What was the name of your first school?','In which city were you born?','What was your first mobile phone brand?','What is your favourite food?','What was the name of your first pet?'];
+document.querySelectorAll('.secQ').forEach(sel=>{sel.innerHTML='<option value="">— choose a question —</option>'+QUESTIONS.map(q=>`<option>${esc(q)}</option>`).join('')});
+function openAuth(m,note){authMode=m;document.querySelectorAll('#authSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
   $('authTitle').textContent={login:'Welcome back',signup:'Create your account',recover:'Reset password'}[m];
-  $('auPassF').classList.toggle('hidden',m==='recover');$('auRecF').classList.toggle('hidden',m!=='recover');$('auNewF').classList.toggle('hidden',m!=='recover');
+  $('auPassF').classList.toggle('hidden',m==='recover');$('auNewF').classList.toggle('hidden',m!=='recover');
+  $('recSeg').classList.toggle('hidden',m!=='recover');$('auSecF').classList.toggle('hidden',m!=='signup');
   $('auPass').autocomplete=m==='signup'?'new-password':'current-password';
   $('auBtn').textContent={login:'Log in',signup:'Create account',recover:'Reset password'}[m];
-  $('auHint').textContent=m==='signup'?(ME.allowSignup===false?'New sign-ups are disabled by the admin.':'Username: 3-32 letters/numbers. Password: 6+ characters. You will get a recovery key.'):m==='recover'?'Use the recovery key you saved at sign-up. Lost it? Ask the admin to reset your password.':'';
-  msg('auMsg');openM('mAuth');setTimeout(()=>$('auUser').focus(),50)}
+  $('auHint').textContent=m==='signup'?(ME.allowSignup===false?'New sign-ups are disabled by the admin.':'Username: 3-32 letters/numbers. Password: 6+ characters. You will get a recovery key.'):m==='login'?'After 10 wrong passwords the account is locked until the password is reset.':'Lost everything? An admin can reset your password from the Admin panel.';
+  setRec(m==='recover'?recMethod:'none');msg('auMsg',note||'',note?'err':'');openM('mAuth');if(m==='recover')recOptions();setTimeout(()=>$('auUser').focus(),50)}
+function setRec(r){if(r!=='none')recMethod=r;document.querySelectorAll('#recSeg button').forEach(b=>b.classList.toggle('on',b.dataset.r===r));
+  $('auRecF').classList.toggle('hidden',r!=='key');$('auMobF').classList.toggle('hidden',r!=='mobile');$('auEmer').classList.toggle('hidden',r!=='emergency')}
+$('recSeg').onclick=e=>{const b=e.target.closest('button');if(b)setRec(b.dataset.r)};
+async function recOptions(){const u=$('auUser').value.trim();if(authMode!=='recover')return;
+  try{const o=await api('recover-options',{body:{username:u}});$('auQ').textContent=o.question||'Security answer';
+    const em=document.querySelector('#recSeg [data-r=emergency]');em.classList.toggle('hidden',!o.emergency);if(o.emergency&&!u)setRec('emergency')}catch{}}
+$('auUser').addEventListener('change',recOptions);
 $('authSeg').onclick=e=>{const b=e.target.closest('button');if(b)openAuth(b.dataset.m)};
 $('authForm').onsubmit=async e=>{e.preventDefault();const btn=$('auBtn');btn.disabled=true;
   try{const u=$('auUser').value.trim();let d;
     if(authMode==='login')d=await api('login',{body:{username:u,password:$('auPass').value}});
-    else if(authMode==='signup')d=await api('signup',{body:{username:u,password:$('auPass').value}});
-    else d=await api('recover',{body:{username:u,recoveryKey:$('auRec').value,newPassword:$('auNew').value}});
-    $('auPass').value=$('auNew').value=$('auRec').value='';closeM('mAuth');setMe(d.me);toast('Welcome, '+d.me.user);
-    if(d.recoveryKey)showKey(d.recoveryKey);if($('v-folders').classList.contains('on'))loadFolders()}
-  catch(er){msg('auMsg',er.message,'err')}btn.disabled=false};
+    else if(authMode==='signup')d=await api('signup',{body:{username:u,password:$('auPass').value,mobile:$('auSMob').value,secQuestion:$('auSQ').value,secAnswer:$('auSA').value}});
+    else d=await api('recover',{body:{username:u,method:recMethod,recoveryKey:$('auRec').value,mobile:$('auMob').value,secAnswer:$('auAns').value,newPassword:$('auNew').value}});
+    ['auPass','auNew','auRec','auAns','auSA','auSMob','auMob'].forEach(id=>$(id).value='');closeM('mAuth');setMe(d.me);toast('Welcome, '+d.me.user);
+    if(d.recoveryKey)showKey(d.recoveryKey,authMode==='recover'?'Password changed. Here is your NEW recovery key (the old one no longer works).':null);if($('v-folders').classList.contains('on'))loadFolders()}
+  catch(er){if(er.code==='ACCOUNT_LOCKED')openAuth('recover','🔒 This account is locked after 10 wrong passwords. Reset the password to unlock it.');else msg('auMsg',er.message,'err')}
+  btn.disabled=false};
+$('secBtn').onclick=()=>{$('acctMenu').classList.remove('on');$('seMob').value='';$('seMob').placeholder=ME.mobile?('Saved: '+ME.mobile+' — type to change'):'10-15 digits';$('seQ').value=ME.secQuestion||'';$('seA').value=$('seP').value='';msg('seMsg');openM('mSec')};
+$('secForm').onsubmit=async e=>{e.preventDefault();try{const d=await api('profile',{body:{password:$('seP').value,mobile:$('seMob').value,secQuestion:$('seA').value?$('seQ').value:'',secAnswer:$('seA').value}});ME=Object.assign(ME,d.me);closeM('mSec');toast('Recovery options saved')}catch(er){msg('seMsg',er.message,'err')}};
 $('setupForm').onsubmit=async e=>{e.preventDefault();try{const d=await api('setup-admin',{body:{username:$('suUser').value,password:$('suPass').value}});closeM('mSetup');setMe(d.me);showKey(d.recoveryKey);toast('Admin account created')}catch(er){msg('suMsg',er.message,'err')}};
 $('logoutBtn').onclick=async()=>{try{await api('logout',{body:{}})}catch{}setMe(null);show('home');toast('Logged out')};
 $('chgPwBtn').onclick=()=>{msg('pwMsg');$('acctMenu').classList.remove('on');openM('mPw')};
@@ -489,7 +565,7 @@ function ask(title,fields,btn,onOk){$('askTitle').textContent=title;$('askBtn').
   openM('mAsk');setTimeout(()=>{const i=$('askFields').querySelector('input');i&&i.focus()},50)}
 
 // ---------- upload engine ----------
-function xhrPost(url,body,onProg,signal){return new Promise((res,rej)=>{const x=new XMLHttpRequest();x.open('POST',url);x.setRequestHeader('Content-Type','application/octet-stream');if(AK)x.setRequestHeader('X-Access-Key',AK);
+function xhrPost(url,body,onProg,signal){return new Promise((res,rej)=>{const x=new XMLHttpRequest();x.open('POST',url);x.setRequestHeader('Content-Type','application/octet-stream');x.setRequestHeader('X-SA','1');if(AK)x.setRequestHeader('X-Access-Key',AK);
   x.upload.onprogress=e=>onProg(e.loaded);x.onload=()=>{let d={};try{d=JSON.parse(x.responseText)}catch{}x.status===200&&d.ok?res(d):rej(new Error(d.error||('Upload failed (HTTP '+x.status+')')))};
   x.onerror=()=>rej(new Error('Network error'));x.onabort=()=>rej(new Error('Cancelled'));signal.addEventListener('abort',()=>x.abort(),{once:true});x.send(body)})}
 // Uploads files after init. Returns {code, owner, fin}
@@ -658,20 +734,77 @@ async function uploadToFolder(list){if(up)return toast('An upload is already run
 $('trayCancel').onclick=e=>{e.preventDefault();up&&up.abort()};
 
 // ---------- admin ----------
+let admSub='overview';
+$('admSeg').onclick=e=>{const b=e.target.closest('button');if(!b)return;admSub=b.dataset.s;document.querySelectorAll('#admSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.asub').forEach(x=>x.classList.toggle('on',x.id==='as-'+admSub));loadAdmin()};
 async function loadAdmin(){if(!ME.admin)return;
-  try{const d=await api('admin-overview');
-    $('admStats').innerHTML=[['💾 Free disk',fmt(Math.max(0,d.disk.free))],['📦 Stored files',fmt(d.disk.used)+' · '+d.files],['📤 Active sends',d.activeSends],['🛡️ Threats blocked',d.threats]].map(([k,v])=>`<div class="stat"><small>${k}</small><b>${esc(v)}</b></div>`).join('');
-    const m=d.settings.userMaxMinutes,u=[525600,1440,60,1].find(x=>m%x===0);$('admMaxUnit').value=u;$('admMaxNum').value=m/u;$('admSignup').checked=d.settings.allowSignup;
-    $('admUsers').innerHTML=`<tr class="muted"><td>User</td><td class="hide-sm">Folders</td><td class="hide-sm">Storage</td><td class="hide-sm">Last login</td><td></td></tr>`+d.users.map(x=>`<tr data-u="${esc(x.name)}"><td class="n">${esc(x.name)} ${x.admin?'<span class="sb clean">admin</span>':''}</td><td class="hide-sm">${x.folders}</td><td class="hide-sm">${fmt(x.storage)}</td><td class="hide-sm muted">${x.lastLogin?new Date(x.lastLogin).toLocaleString():'—'}</td>
-      <td class="r">${x.name===ME.user?'<span class="muted">you</span>':`<div class="tools" style="justify-content:flex-end"><button class="btn ghost" data-u-a="reset">Reset password</button><button class="btn ghost" data-u-a="admin">${x.admin?'Remove admin':'Make admin'}</button><button class="btn ghost" data-u-a="del" style="color:var(--err)">Delete</button></div>`}</td></tr>`).join('')}
-  catch(e){msg('admMsg',e.message,'err')}}
+  try{if(admSub==='overview'||admSub==='users'){const d=await api('admin-overview');
+      $('admStats').innerHTML=[['💾 Free disk',fmt(Math.max(0,d.disk.free))],['📦 Stored files',fmt(d.disk.used)+' · '+d.files],['📤 Active sends',d.activeSends],['👥 Accounts',d.users.length]].map(([k,v])=>`<div class="stat"><small>${k}</small><b>${esc(v)}</b></div>`).join('');
+      const m=d.settings.userMaxMinutes,u=[525600,1440,60,1].find(x=>m%x===0);$('admMaxUnit').value=u;$('admMaxNum').value=m/u;$('admSignup').checked=d.settings.allowSignup;
+      $('admUsers').innerHTML=`<tr class="muted"><td>User</td><td>Mobile</td><td class="hide-sm">Folders</td><td class="hide-sm">Storage</td><td class="hide-sm">Last login</td><td></td></tr>`+d.users.map(x=>`<tr data-u="${esc(x.name)}"><td class="n">${esc(x.name)} ${x.admin?'<span class="sb clean">admin</span>':''}${x.locked?' <span class="sb threat">locked</span>':''}</td><td class="muted">${esc(x.mobile||'—')}</td><td class="hide-sm">${x.folders}</td><td class="hide-sm">${fmt(x.storage)}</td><td class="hide-sm muted">${x.lastLogin?new Date(x.lastLogin).toLocaleString():'—'}</td>
+        <td class="r"><div class="tools" style="justify-content:flex-end;flex-wrap:nowrap"><button class="btn ghost" data-u-a="mobile">📱</button><button class="btn ghost" data-u-a="reset">${x.locked?'Unlock + reset':'Reset password'}</button>${x.name===ME.user?'<span class="muted" style="align-self:center">you</span>':`<button class="btn ghost" data-u-a="admin">${x.admin?'Remove admin':'Make admin'}</button><button class="btn ghost" data-u-a="del" style="color:var(--err)">Delete</button>`}</div></td></tr>`).join('')}
+    if(admSub==='shares'){const l=await api('admin-shares');
+      $('admShares').innerHTML=l.length?`<tr class="muted"><td>Code</td><td>Type</td><td class="hide-sm">Owner</td><td>Files</td><td class="hide-sm">Size</td><td>Ends</td><td></td></tr>`+l.map(x=>`<tr data-c="${x.code}"><td><b>${x.code}</b>${x.locked?' 🔒':''}</td><td>${x.kind==='folder'?'📁 '+esc(x.name):'⇅ Quick send'}</td><td class="hide-sm">${esc(x.owner)}</td><td>${x.files}</td><td class="hide-sm">${fmt(x.size)}</td><td>${x.expires?tm(x.expires):'—'}</td><td class="r"><button class="x" data-del-share title="Delete">×</button></td></tr>`).join(''):'<tr><td class="empty">No active transfers or folders.</td></tr>'}
+    if(admSub==='files')fmOpen(fmPath)}
+  catch(e){toast(e.message)}}
 $('admRefresh').onclick=loadAdmin;
 $('admSave').onclick=async()=>{try{const mins=Math.round(+$('admMaxNum').value*+$('admMaxUnit').value);await api('admin-settings',{body:{userMaxMinutes:mins,allowSignup:$('admSignup').checked}});msg('admMsg','✓ Settings saved','ok');refreshMe()}catch(e){msg('admMsg',e.message,'err')}};
+$('cuBtn').onclick=async()=>{try{const d=await api('admin-create-user',{body:{username:$('cuUser').value,password:$('cuPass').value,mobile:$('cuMobile').value,admin:$('cuAdmin').checked}});
+  showKey(d.recoveryKey,'Account '+$('cuUser').value.trim().toLowerCase()+' created. Give this recovery key to the user (shown only once).');['cuUser','cuPass','cuMobile'].forEach(i=>$(i).value='');$('cuAdmin').checked=false;msg('cuMsg');loadAdmin()}catch(e){msg('cuMsg',e.message,'err')}};
 $('admUsers').addEventListener('click',async e=>{const b=e.target.closest('[data-u-a]');if(!b)return;const name=b.closest('tr').dataset.u,a=b.dataset.uA;
-  try{if(a==='reset'&&confirm('Reset password for '+name+'?')){const d=await api('admin-reset-user',{body:{username:name}});showKey(d.tempPassword,'Temporary password for '+name+'. Give it to the user; they should change it after logging in.')}
+  try{if(a==='reset'&&confirm('Reset password for '+name+'? The account will also be unlocked.')){const d=await api('admin-reset-user',{body:{username:name}});showKey(d.tempPassword,'Temporary password for '+name+'. Give it to the user; they should change it after logging in.');loadAdmin()}
+    if(a==='mobile')ask('Mobile number for '+name,[{k:'m',label:'Mobile number (empty to remove)',type:'tel',ph:'10-15 digits'}],'Save',async v=>{await api('admin-set-mobile',{body:{username:name,mobile:v.m}});loadAdmin()});
     if(a==='admin'&&confirm('Change admin rights for '+name+'?')){await api('admin-toggle-admin',{body:{username:name}});loadAdmin()}
     if(a==='del'&&confirm('Delete user '+name+' and ALL their folders and files?')){await api('admin-delete-user',{body:{username:name}});loadAdmin()}}
   catch(er){toast(er.message)}});
+$('admShares').addEventListener('click',async e=>{if(!e.target.closest('[data-del-share]'))return;const c=e.target.closest('tr').dataset.c;if(confirm('Delete '+c+' and its files now?')){try{await api('admin-delete-share',{body:{code:c}});loadAdmin()}catch(er){toast(er.message)}}});
+
+// ---------- server file manager ----------
+let fmPath=store.get('fmPath',''),fmParent='';
+const icon=(n,dir)=>dir?'📁':({pdf:'📕',zip:'🗜️',rar:'🗜️','7z':'🗜️',jpg:'🖼️',jpeg:'🖼️',png:'🖼️',gif:'🖼️',mp4:'🎬',mkv:'🎬',mp3:'🎵',doc:'📘',docx:'📘',xls:'📗',xlsx:'📗',ppt:'📙',pptx:'📙',exe:'⚙️',msi:'⚙️',txt:'📄'}[ext(n).toLowerCase()]||'📄');
+const fmUrl=p=>`${API}?action=fs-download&path=${encodeURIComponent(p)}${akq()}`;
+const join=(d,n)=>d.replace(/\\$/,'')+'\\'+n;
+async function fmOpen(p){try{const d=await api('fs-list',{q:'&path='+encodeURIComponent(p||'')});fmPath=d.path;fmParent=d.parent||'';store.set('fmPath',fmPath);fmRender(d)}
+  catch(e){if(p){toast(e.message);if(e.status===404)fmOpen('')}else $('fmBody').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
+function fmRender(d){
+  const parts=d.path?d.path.split('\\').filter(Boolean):[];let acc='';
+  $('fmCrumbs').innerHTML='<button data-p="">🖥️ This PC</button>'+parts.map((x,i)=>{acc+=x+'\\';return`<span>›</span><button data-p="${esc(acc)}">${esc(x)}</button>`}).join('');
+  ['fmUp','fmNew','fmUpload'].forEach(id=>$(id).disabled=!d.path);
+  if(!d.path){$('fmBody').innerHTML='<div class="drives">'+d.drives.map(v=>`<button class="drive" data-p="${esc(v.name)}"><b>💽 ${esc(v.name)}</b> <span class="muted">${esc(v.label||v.type)}</span><small>${v.total>0?fmt(v.free)+' free of '+fmt(v.total):''}</small>${v.total>0?`<div class="bar"><i style="width:${(100-v.free/v.total*100).toFixed(0)}%"></i></div>`:''}</button>`).join('')+'</div>';return}
+  const items=d.items.sort((a,b)=>(b.dir-a.dir)||a.name.localeCompare(b.name,undefined,{numeric:true}));
+  $('fmBody').innerHTML=items.length?`<table class="ftable"><tr class="muted"><td>Name</td><td class="r hide-sm">Size</td><td class="r hide-sm">Modified</td><td></td></tr>`+items.map(x=>`<tr class="row" data-n="${esc(x.name)}" data-dir="${x.dir?1:0}"><td class="n"><button class="nm-btn" data-open>${icon(x.name,x.dir)} ${esc(x.name)}</button></td><td class="r hide-sm muted">${x.dir?'':fmt(x.size)}</td><td class="r hide-sm muted">${new Date(x.modified).toLocaleString()}</td>
+    <td class="r" style="white-space:nowrap">${x.dir?'':`<a class="act" href="${fmUrl(join(d.path,x.name))}" title="Download">⬇</a>`}<button class="act" data-ren title="Rename">✎</button><button class="act" data-del title="Delete">🗑</button></td></tr>`).join('')+'</table>':'<div class="empty">This folder is empty. Drop files here to upload.</div>'}
+$('fmCrumbs').onclick=e=>{const b=e.target.closest('[data-p]');if(b)fmOpen(b.dataset.p)};
+$('fmBody').addEventListener('click',async e=>{const dv=e.target.closest('.drive');if(dv)return fmOpen(dv.dataset.p);
+  const tr=e.target.closest('tr.row');if(!tr)return;const name=tr.dataset.n,full=join(fmPath,name);
+  if(e.target.closest('[data-open]')){if(tr.dataset.dir==='1')fmOpen(full);else location.href=fmUrl(full)}
+  if(e.target.closest('[data-ren]'))ask('Rename',[{k:'n',label:'New name',value:name}],'Rename',async v=>{await api('fs-rename',{body:{path:full,name:v.n}});fmOpen(fmPath)});
+  if(e.target.closest('[data-del]')&&confirm(`Delete "${name}" from the server PC? This cannot be undone.`)){
+    try{await api('fs-delete',{body:{path:full}})}catch(er){if(er.code==='FOLDER_NOT_EMPTY'){if(prompt(`"${name}" is not empty. Type DELETE to remove it with everything inside.`)!=='DELETE')return;await api('fs-delete',{body:{path:full,recursive:true}})}else return toast(er.message)}
+    toast('Deleted');fmOpen(fmPath)}});
+$('fmUp').onclick=()=>fmOpen(fmParent);
+$('fmNew').onclick=()=>ask('New folder',[{k:'n',label:'Folder name',value:'New folder'}],'Create',async v=>{await api('fs-mkdir',{body:{path:fmPath,name:v.n}});fmOpen(fmPath)});
+$('fmUpload').onclick=()=>$('fmPick').click();
+$('fmPick').onchange=()=>{const l=[...$('fmPick').files];$('fmPick').value='';if(l.length)fmUpload(l)};
+const fmZone=$('as-files');
+fmZone.addEventListener('dragover',e=>{if(!fmPath)return;e.preventDefault();fmZone.classList.add('fmdrop')});
+fmZone.addEventListener('dragleave',e=>{if(!fmZone.contains(e.relatedTarget))fmZone.classList.remove('fmdrop')});
+fmZone.addEventListener('drop',e=>{e.preventDefault();fmZone.classList.remove('fmdrop');if(fmPath&&e.dataTransfer.files.length)fmUpload([...e.dataTransfer.files])});
+async function fmUpload(list){if(up)return toast('An upload is already running');const dir=fmPath;
+  up=new AbortController();$('tray').classList.remove('hidden');lockWake(true);
+  const total=list.reduce((a,f)=>a+f.size,0)||1;let done=0;const t0=performance.now();
+  const tick=()=>{const p=Math.min(100,done/total*100),el=(performance.now()-t0)/1000;$('trayBar').style.width=p+'%';$('trayPct').textContent=p.toFixed(1)+'%';document.title=Math.floor(p)+'% · '+baseTitle;if(el>.3){const s=done/el;$('traySpeed').textContent=fmt(s)+'/s · '+ftime((total-done)/s)+' left'}};
+  try{for(const [n,f] of list.entries()){$('trayTitle').textContent=`Uploading ${n+1}/${list.length}: ${f.name}`;
+      const {token}=await api('fs-upload-init',{body:{path:dir,name:f.name,size:f.size}});
+      const jobs=[];for(let o=0;o<f.size;o+=CHUNK)jobs.push({o,len:Math.min(CHUNK,f.size-o)});let next=0;
+      try{await Promise.all(Array.from({length:Math.min(PARALLEL,jobs.length||1)},async()=>{while(next<jobs.length){const jb=jobs[next++];
+        for(let t=0;;t++){let sent=0;try{await xhrPost(`${API}?action=fs-chunk&token=${encodeURIComponent(token)}&offset=${jb.o}${akq()}`,f.slice(jb.o,jb.o+jb.len),x=>{done+=x-sent;sent=x;tick()},up.signal);done+=jb.len-sent;break}
+          catch(er){done-=sent;if(up.signal.aborted||t>=4)throw er;await sleep(600*(t+1))}}tick()}}));
+        await api('fs-upload-done',{body:{token}})}
+      catch(er){api('fs-upload-done',{body:{token,recursive:true}}).catch(()=>{});throw er}}
+    $('trayTitle').textContent='✓ Uploaded '+list.length+' file(s)';toast('Upload complete')}
+  catch(e){$('trayTitle').textContent=up.signal.aborted?'Upload cancelled':'Error: '+e.message}
+  up=null;lockWake(false);document.title=baseTitle;if(fmPath===dir)fmOpen(dir);setTimeout(()=>{if(!up)$('tray').classList.add('hidden')},3000)}
 
 // ---------- start ----------
 async function refreshMe(){try{setMe(await api('me'))}catch{setMe(null)}}

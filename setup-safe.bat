@@ -66,6 +66,19 @@ echo [3/6] App pool "%NAME%" (.NET v4.0, Integrated)...
 "%APPCMD%" list apppool "%NAME%" >nul 2>&1
 if errorlevel 1 "%APPCMD%" add apppool /name:"%NAME%" >>"%LOG%" 2>&1
 "%APPCMD%" set apppool "%NAME%" /managedRuntimeVersion:v4.0 /managedPipelineMode:Integrated >>"%LOG%" 2>&1
+echo.
+echo       Admin "Server files" manager: should admins be able to open ALL drives and folders
+echo       of this PC from other PCs (upload / download / delete)?
+echo       Y = full access (app runs as LocalSystem)   N = only folders IIS can already reach (safer)
+set "FULL=N"
+set /p "FULL=      Allow full drive access for admins? (Y/N, default N): "
+if /i "%FULL%"=="Y" (
+  "%APPCMD%" set apppool "%NAME%" /processModel.identityType:LocalSystem >>"%LOG%" 2>&1
+  echo       Full drive access ENABLED for admin accounts.
+) else (
+  "%APPCMD%" set apppool "%NAME%" /processModel.identityType:ApplicationPoolIdentity >>"%LOG%" 2>&1
+  echo       Limited access ^(default^).
+)
 
 echo.
 echo [4/6] Website "%NAME%" ^-^> %APPDIR%

@@ -50,6 +50,7 @@ public class TransferHandler : IHttpHandler
     {
         public string name; public string hash; public string salt; public string recHash; public string recSalt;
         public bool admin; public DateTime created; public string stamp; public DateTime? lastLogin;
+        public string mobile; public string secQuestion; public string secHash; public string secSalt; public int failCount; public bool locked;
     }
     public class Settings { public int userMaxMinutes = 60; public bool allowSignup = true; }
     public class Req
@@ -57,6 +58,8 @@ public class TransferHandler : IHttpHandler
         public string code; public string name; public string password; public string newPassword; public string username; public string recoveryKey;
         public string pin; public int minutes; public bool deleteAfterDownload; public List<FileMeta> files; public List<int> ids;
         public int userMaxMinutes; public bool allowSignup;
+        public string mobile; public string secQuestion; public string secAnswer; public string method; public bool admin;
+        public string path; public string target; public long size; public string token; public bool recursive;
     }
 
     // ---------- paths ----------
@@ -129,6 +132,21 @@ public class TransferHandler : IHttpHandler
                 case "admin-reset-user": Post(c); AdminResetUser(c); break;
                 case "admin-delete-user": Post(c); AdminDeleteUser(c); break;
                 case "admin-toggle-admin": Post(c); AdminToggle(c); break;
+                case "admin-create-user": Post(c); AdminCreateUser(c); break;
+                case "admin-set-mobile": Post(c); AdminSetMobile(c); break;
+                case "admin-shares": AdminShares(c); break;
+                case "admin-delete-share": Post(c); AdminDeleteShare(c); break;
+                case "profile": Post(c); Profile(c); break;
+                case "recover-options": Post(c); RecoverOptions(c); break;
+                // server file manager (admin only)
+                case "fs-list": FsList(c); break;
+                case "fs-download": FsDownload(c); break;
+                case "fs-mkdir": Post(c); FsMkdir(c); break;
+                case "fs-rename": Post(c); FsRename(c); break;
+                case "fs-delete": Post(c); FsDelete(c); break;
+                case "fs-upload-init": Post(c); FsUploadInit(c); break;
+                case "fs-chunk": Post(c); FsChunk(c); break;
+                case "fs-upload-done": Post(c); FsUploadDone(c); break;
                 default: Fail(c, 400, "Unknown action"); break;
             }
         }
@@ -504,7 +522,7 @@ public class TransferHandler : IHttpHandler
         if (b.kind == "send" && live.Count == 0 && b.files.All(f => f.complete)) throw Err(410, "These files were already downloaded or have expired.");
         Send(c, new
         {
-            b.code, b.kind, name = b.name, owner = b.ownerUser, locked = b.pinHash != null,
+            b.code, b.kind, name = b.name, owner = IsAdminName(b.ownerUser) ? "Administrator" : b.ownerUser, locked = b.pinHash != null,
             expires = b.expires.HasValue ? b.expires.Value.ToString("o") : null,
             files = b.files.Where(Live).Select(PublicFile)
         });
@@ -558,7 +576,8 @@ public class TransferHandler : IHttpHandler
         return new
         {
             user = u == null ? null : u.name, admin = u != null && u.admin, needsAdminSetup = noAdmin,
-            maxMinutes = MaxMinutes(u), userMaxMinutes = s.userMaxMinutes, allowSignup = s.allowSignup
+            maxMinutes = MaxMinutes(u), userMaxMinutes = s.userMaxMinutes, allowSignup = s.allowSignup,
+            mobile = u == null ? null : MaskMobile(u.mobile), secQuestion = u == null ? null : u.secQuestion
         };
     }
     static void Me(HttpContext c) { Send(c, MeView(Current(c))); }
@@ -584,6 +603,7 @@ public class TransferHandler : IHttpHandler
             if (all.Values.Any(x => x.admin)) throw Err(409, "Admin account already exists.");
             if (all.ContainsKey(name)) throw Err(409, "Username already taken.");
             u = CreateUser(name, req.password, true, out rec);
+            ApplySecurity(u, req.mobile, req.secQuestion, req.secAnswer, false);
             all[name] = u; SaveUsers(all);
         }
         SetSession(c, u);
@@ -603,6 +623,7 @@ public class TransferHandler : IHttpHandler
             if (all.ContainsKey(name)) throw Err(409, "Username already taken.");
             if (all.Count >= 5000) throw Err(507, "User limit reached.");
             u = CreateUser(name, req.password, false, out rec);
+            ApplySecurity(u, req.mobile, req.secQuestion, req.secAnswer, false);
             all[name] = u; SaveUsers(all);
         }
         AddFail(c); // sign-ups count toward the per-IP limit to stop mass account creation
@@ -619,8 +640,17 @@ public class TransferHandler : IHttpHandler
         lock (UserLock)
         {
             var all = LoadUsers();
-            if (!all.TryGetValue(name, out u) || !SafeEquals(Pbkdf2(req.password, u.salt), u.hash)) { AddFail(c); throw Err(403, "Wrong username or password."); }
-            u.lastLogin = DateTime.UtcNow; SaveUsers(all);
+            if (!all.TryGetValue(name, out u)) { AddFail(c); throw Err(403, "Wrong username or password."); }
+            if (u.locked) throw Err(403, "ACCOUNT_LOCKED");
+            if (!SafeEquals(Pbkdf2(req.password, u.salt), u.hash))
+            {
+                AddFail(c);
+                u.failCount++;
+                if (u.failCount >= MaxWrongPasswords) { u.locked = true; SaveUsers(all); throw Err(403, "ACCOUNT_LOCKED"); }
+                SaveUsers(all);
+                throw Err(403, "Wrong username or password. " + (MaxWrongPasswords - u.failCount) + " attempt(s) left before the account is locked.");
+            }
+            u.failCount = 0; u.lastLogin = DateTime.UtcNow; SaveUsers(all);
         }
         SetSession(c, u);
         Send(c, new { ok = true, me = MeView(u) });
@@ -643,6 +673,69 @@ public class TransferHandler : IHttpHandler
         Send(c, new { ok = true });
     }
 
+    const int MaxWrongPasswords = 10;
+    static string NormMobile(string m) { return new string((m ?? "").Where(char.IsDigit).ToArray()); }
+    static bool SameMobile(string a, string b)
+    {
+        a = NormMobile(a); b = NormMobile(b);
+        if (a.Length < 10 || b.Length < 10) return false;
+        return a.Substring(a.Length - 10) == b.Substring(b.Length - 10);   // ignore country code
+    }
+    static string MaskMobile(string m) { m = NormMobile(m); return m.Length < 4 ? (m.Length == 0 ? null : "****") : new string('*', m.Length - 4) + m.Substring(m.Length - 4); }
+    static string NormAnswer(string a) { return string.Join(" ", (a ?? "").Trim().ToLowerInvariant().Split((char[])null, StringSplitOptions.RemoveEmptyEntries)); }
+
+    // Sets mobile number + security question/answer. Used together as the second way to reset a password.
+    static void ApplySecurity(User u, string mobile, string q, string a, bool required)
+    {
+        var m = NormMobile(mobile);
+        if (m.Length > 0 && (m.Length < 10 || m.Length > 15)) throw Err(400, "Mobile number must have 10-15 digits.");
+        if (m.Length > 0) u.mobile = m;
+        if (!string.IsNullOrWhiteSpace(q) || !string.IsNullOrWhiteSpace(a))
+        {
+            if (string.IsNullOrWhiteSpace(q) || q.Trim().Length > 120) throw Err(400, "Choose a security question.");
+            if (NormAnswer(a).Length < 2) throw Err(400, "Security answer is too short.");
+            u.secQuestion = q.Trim(); u.secSalt = NewSalt(); u.secHash = Pbkdf2(NormAnswer(a), u.secSalt);
+        }
+        else if (required && u.secHash == null) throw Err(400, "Set a security question and answer.");
+    }
+
+    static void Profile(HttpContext c)
+    {
+        var me = RequireUser(c);
+        var req = Body(c);
+        lock (UserLock)
+        {
+            var all = LoadUsers(); var u = all[me.name];
+            if (!SafeEquals(Pbkdf2(req.password, u.salt), u.hash)) { AddFail(c); throw Err(403, "Current password is wrong."); }
+            ApplySecurity(u, req.mobile, req.secQuestion, req.secAnswer, false);
+            SaveUsers(all);
+            Send(c, new { ok = true, me = MeView(u) });
+        }
+    }
+
+    // Tells the reset page which methods exist for a user (never reveals whether a user is an admin).
+    static void RecoverOptions(HttpContext c)
+    {
+        Guard(c);
+        var name = (Body(c).username ?? "").Trim().ToLowerInvariant();
+        User u; lock (UserLock) LoadUsers().TryGetValue(name, out u);
+        bool local = IPAddress.IsLoopback(IPAddress.Parse(c.Request.UserHostAddress)) && EmergencyAllowed();
+        Send(c, new
+        {
+            recoveryKey = true,
+            mobile = u != null && u.mobile != null && u.secHash != null,
+            question = u != null && u.secHash != null ? u.secQuestion : "What is your favourite colour?",
+            emergency = local
+        });
+    }
+
+    // Emergency reset: someone ran reset-password.bat as Windows administrator on the server PC in the last 15 minutes.
+    static bool EmergencyAllowed()
+    {
+        var f = Path.Combine(Accounts, "reset.allow");
+        return File.Exists(f) && DateTime.UtcNow - File.GetLastWriteTimeUtc(f) < TimeSpan.FromMinutes(15);
+    }
+
     static void Recover(HttpContext c)
     {
         Guard(c);
@@ -653,11 +746,28 @@ public class TransferHandler : IHttpHandler
         lock (UserLock)
         {
             var all = LoadUsers();
-            var key = (req.recoveryKey ?? "").Trim();
-            if (!all.TryGetValue(name, out u) || !SafeEquals(Pbkdf2(key, u.recSalt), u.recHash)) { AddFail(c); throw Err(403, "Username or recovery key is wrong."); }
+            bool ok = all.TryGetValue(name, out u);
+            if (ok)
+            {
+                switch (req.method)
+                {
+                    case "mobile":
+                        ok = u.mobile != null && u.secHash != null && SameMobile(req.mobile, u.mobile) && SafeEquals(Pbkdf2(NormAnswer(req.secAnswer), u.secSalt), u.secHash);
+                        break;
+                    case "emergency":
+                        ok = IPAddress.IsLoopback(IPAddress.Parse(c.Request.UserHostAddress)) && EmergencyAllowed();
+                        break;
+                    default:
+                        ok = SafeEquals(Pbkdf2((req.recoveryKey ?? "").Trim(), u.recSalt), u.recHash);
+                        break;
+                }
+            }
+            if (!ok) { AddFail(c); throw Err(403, "The details do not match. Check them and try again."); }
             rec = NewRecoveryKey();
             u.salt = NewSalt(); u.hash = Pbkdf2(req.newPassword, u.salt); u.recSalt = NewSalt(); u.recHash = Pbkdf2(rec, u.recSalt); u.stamp = RandomToken(12);
+            u.failCount = 0; u.locked = false;
             SaveUsers(all);
+            if (req.method == "emergency") try { File.Delete(Path.Combine(Accounts, "reset.allow")); } catch { }
         }
         SetSession(c, u);
         Send(c, new { ok = true, recoveryKey = rec, me = MeView(u) });
@@ -750,7 +860,7 @@ public class TransferHandler : IHttpHandler
             threats = boxes.Sum(b => b.files.Count(f => f.scan == "threat")),
             users = users.Values.OrderBy(x => x.name).Select(x => new
             {
-                x.name, x.admin, created = x.created.ToString("o"), lastLogin = x.lastLogin.HasValue ? x.lastLogin.Value.ToString("o") : null,
+                x.name, x.admin, mobile = x.mobile, x.locked, created = x.created.ToString("o"), lastLogin = x.lastLogin.HasValue ? x.lastLogin.Value.ToString("o") : null,
                 folders = boxes.Count(b => b.kind == "folder" && b.ownerUser == x.name),
                 storage = boxes.Where(b => b.ownerUser == x.name).Sum(b => b.files.Sum(f => f.size))
             })
@@ -776,7 +886,7 @@ public class TransferHandler : IHttpHandler
         {
             var all = LoadUsers(); User u;
             if (!all.TryGetValue(name, out u)) throw Err(404, "User not found");
-            u.salt = NewSalt(); u.hash = Pbkdf2(temp, u.salt); u.stamp = RandomToken(12);
+            u.salt = NewSalt(); u.hash = Pbkdf2(temp, u.salt); u.stamp = RandomToken(12); u.failCount = 0; u.locked = false;
             SaveUsers(all);
             if (name == me.name) SetSession(c, u);
         }
@@ -801,6 +911,241 @@ public class TransferHandler : IHttpHandler
         if (name == me.name) throw Err(400, "You cannot change your own admin rights.");
         lock (UserLock) { var all = LoadUsers(); User u; if (!all.TryGetValue(name, out u)) throw Err(404, "User not found"); u.admin = !u.admin; u.stamp = RandomToken(12); SaveUsers(all); }
         Send(c, new { ok = true });
+    }
+
+    // ---------- admin: users & shares ----------
+    static bool IsAdminName(string n)
+    {
+        if (n == null) return false;
+        User u; lock (UserLock) return LoadUsers().TryGetValue(n, out u) && u.admin;
+    }
+
+    static void AdminCreateUser(HttpContext c)
+    {
+        RequireAdmin(c);
+        var req = Body(c);
+        var name = CleanUser(req.username); CheckPassword(req.password);
+        string rec;
+        lock (UserLock)
+        {
+            var all = LoadUsers();
+            if (all.ContainsKey(name)) throw Err(409, "Username already taken.");
+            var u = CreateUser(name, req.password, req.admin, out rec);
+            ApplySecurity(u, req.mobile, null, null, false);
+            all[name] = u; SaveUsers(all);
+        }
+        Send(c, new { ok = true, recoveryKey = rec });
+    }
+
+    static void AdminSetMobile(HttpContext c)
+    {
+        RequireAdmin(c);
+        var req = Body(c);
+        var name = (req.username ?? "").ToLowerInvariant();
+        lock (UserLock)
+        {
+            var all = LoadUsers(); User u;
+            if (!all.TryGetValue(name, out u)) throw Err(404, "User not found");
+            var m = NormMobile(req.mobile);
+            if (m.Length == 0) u.mobile = null; else ApplySecurity(u, m, null, null, false);
+            SaveUsers(all);
+        }
+        Send(c, new { ok = true });
+    }
+
+    static void AdminShares(HttpContext c)
+    {
+        RequireAdmin(c);
+        Send(c, AllBoxes().OrderByDescending(b => b.created).Select(b => new
+        {
+            b.code, b.kind, b.name, owner = b.ownerUser ?? "guest", locked = b.pinHash != null,
+            files = b.files.Count(f => f.complete), size = b.files.Sum(f => f.size),
+            expires = b.files.Count == 0 ? null : b.files.Max(f => f.expires).ToString("o"), created = b.created.ToString("o")
+        }));
+    }
+
+    static void AdminDeleteShare(HttpContext c)
+    {
+        RequireAdmin(c);
+        var code = CleanCode(Body(c).code);
+        if (code == null || !Directory.Exists(Path.Combine(Boxes, code))) throw Err(404, "Not found");
+        lock (Lock) try { Directory.Delete(Path.Combine(Boxes, code), true); } catch { }
+        Send(c, new { ok = true });
+    }
+
+    // ---------- server file manager (admin only) ----------
+    // Lets an admin browse the server PC's drives from any LAN PC, download, upload, create, rename and delete.
+    // What is reachable depends on the IIS app pool identity (setup-safe.bat can grant full access).
+    class FsUpload { public string temp; public string final; public long size; public string user; public DateTime started; }
+    static readonly Dictionary<string, FsUpload> FsUploads = new Dictionary<string, FsUpload>();
+
+    static string FullPath(string p)
+    {
+        if (string.IsNullOrWhiteSpace(p)) throw Err(400, "Path required");
+        p = p.Replace('/', '\\');
+        if (p.StartsWith(@"\\")) throw Err(400, "Network paths are not allowed.");
+        var full = Path.GetFullPath(p);
+        if (!Path.IsPathRooted(full)) throw Err(400, "Invalid path");
+        return full;
+    }
+    static string CheckChildName(string n)
+    {
+        n = (n ?? "").Trim();
+        if (n.Length == 0 || n.Length > 200 || n == "." || n == ".." || n.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) throw Err(400, "Invalid name");
+        return n;
+    }
+
+    static void FsList(HttpContext c)
+    {
+        RequireAdmin(c);
+        var path = c.Request["path"];
+        if (string.IsNullOrEmpty(path))
+        {
+            var drives = DriveInfo.GetDrives().Where(d => { try { return d.IsReady; } catch { return false; } }).Select(d => new
+            {
+                name = d.Name, label = SafeGet(() => d.VolumeLabel, ""), type = d.DriveType.ToString(),
+                free = SafeGet(() => d.AvailableFreeSpace, -1L), total = SafeGet(() => d.TotalSize, -1L)
+            });
+            Send(c, new { path = "", drives }); return;
+        }
+        var full = FullPath(path);
+        if (!Directory.Exists(full)) throw Err(404, "Folder not found");
+        var di = new DirectoryInfo(full);
+        var items = new List<object>();
+        try
+        {
+            foreach (var e in di.EnumerateFileSystemInfos())
+            {
+                try
+                {
+                    if ((e.Attributes & (FileAttributes.System | FileAttributes.Hidden)) == (FileAttributes.System | FileAttributes.Hidden)) continue;
+                    var isDir = (e.Attributes & FileAttributes.Directory) != 0;
+                    items.Add(new { name = e.Name, dir = isDir, size = isDir ? -1 : ((FileInfo)e).Length, modified = e.LastWriteTimeUtc.ToString("o"), hidden = (e.Attributes & FileAttributes.Hidden) != 0 });
+                    if (items.Count >= 5000) break;
+                }
+                catch { }
+            }
+        }
+        catch (UnauthorizedAccessException) { throw Err(403, "Access denied to this folder. Run setup-safe.bat and allow full drive access for the admin."); }
+        Send(c, new { path = full, parent = di.Parent == null ? "" : di.Parent.FullName, items });
+    }
+    static T SafeGet<T>(Func<T> f, T d) { try { return f(); } catch { return d; } }
+
+    static void FsDownload(HttpContext c)
+    {
+        RequireAdmin(c);
+        var full = FullPath(c.Request["path"]);
+        if (!File.Exists(full)) throw Err(404, "File not found");
+        c.Response.BufferOutput = false;
+        c.Response.ContentType = "application/octet-stream";
+        c.Response.AddHeader("Content-Disposition", "attachment; filename*=UTF-8''" + Uri.EscapeDataString(Path.GetFileName(full)));
+        c.Response.TransmitFile(full);
+    }
+
+    static void FsMkdir(HttpContext c)
+    {
+        RequireAdmin(c);
+        var req = Body(c);
+        var dir = FullPath(req.path);
+        var target = Path.Combine(dir, CheckChildName(req.name));
+        if (Directory.Exists(target) || File.Exists(target)) throw Err(409, "Already exists");
+        Directory.CreateDirectory(target);
+        Send(c, new { ok = true });
+    }
+
+    static void FsRename(HttpContext c)
+    {
+        RequireAdmin(c);
+        var req = Body(c);
+        var full = FullPath(req.path);
+        var target = Path.Combine(Path.GetDirectoryName(full), CheckChildName(req.name));
+        if (Directory.Exists(target) || File.Exists(target)) throw Err(409, "A file or folder with that name already exists");
+        if (Directory.Exists(full)) Directory.Move(full, target);
+        else if (File.Exists(full)) File.Move(full, target);
+        else throw Err(404, "Not found");
+        Send(c, new { ok = true });
+    }
+
+    static void FsDelete(HttpContext c)
+    {
+        RequireAdmin(c);
+        var req = Body(c);
+        var full = FullPath(req.path);
+        if (Path.GetPathRoot(full) == full) throw Err(400, "Drives cannot be deleted.");
+        var win = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
+        if (full.StartsWith(win, StringComparison.OrdinalIgnoreCase) || full.StartsWith(dataRoot, StringComparison.OrdinalIgnoreCase)) throw Err(403, "This location is protected.");
+        if (Directory.Exists(full))
+        {
+            if (!req.recursive && Directory.EnumerateFileSystemEntries(full).Any()) throw Err(409, "FOLDER_NOT_EMPTY");
+            Directory.Delete(full, req.recursive);
+        }
+        else if (File.Exists(full)) File.Delete(full);
+        else throw Err(404, "Not found");
+        Send(c, new { ok = true });
+    }
+
+    static void FsUploadInit(HttpContext c)
+    {
+        var u = RequireAdmin(c);
+        var req = Body(c);
+        var dir = FullPath(req.path);
+        if (!Directory.Exists(dir)) throw Err(404, "Folder not found");
+        if (req.size < 0 || req.size > MaxFileSize) throw Err(400, "Each file must be 50 GB or smaller.");
+        var name = CheckChildName(CleanName(req.name, "file"));
+        var final = Path.Combine(dir, name);
+        for (int i = 1; File.Exists(final) || Directory.Exists(final); i++)
+            final = Path.Combine(dir, Path.GetFileNameWithoutExtension(name) + " (" + i + ")" + Path.GetExtension(name));
+        var token = RandomToken(18);
+        var temp = final + ".sa-uploading";
+        try { using (var fs = new FileStream(temp, FileMode.Create)) fs.SetLength(req.size); }
+        catch (UnauthorizedAccessException) { throw Err(403, "No permission to write in this folder. Run setup-safe.bat and allow full drive access."); }
+        lock (FsUploads)
+        {
+            foreach (var k in FsUploads.Where(x => DateTime.UtcNow - x.Value.started > TimeSpan.FromHours(12)).Select(x => x.Key).ToList()) FsUploads.Remove(k);
+            FsUploads[token] = new FsUpload { temp = temp, final = final, size = req.size, user = u.name, started = DateTime.UtcNow };
+        }
+        Send(c, new { token, name = Path.GetFileName(final) });
+    }
+
+    static FsUpload GetUpload(HttpContext c, User u, string token)
+    {
+        FsUpload up;
+        lock (FsUploads) if (token == null || !FsUploads.TryGetValue(token, out up) || up.user != u.name) throw Err(404, "Upload not found");
+        return up;
+    }
+
+    static void FsChunk(HttpContext c)
+    {
+        var u = RequireAdmin(c);
+        var up = GetUpload(c, u, c.Request["token"]);
+        long offset;
+        if (!long.TryParse(c.Request["offset"], out offset) || offset < 0 || offset > up.size) throw Err(400, "Bad chunk");
+        var input = c.Request.GetBufferlessInputStream(true);
+        using (var fs = new FileStream(up.temp, FileMode.Open, FileAccess.Write, FileShare.ReadWrite, 1 << 20))
+        {
+            fs.Seek(offset, SeekOrigin.Begin);
+            var buf = new byte[1 << 20]; int n; long written = 0;
+            while ((n = input.Read(buf, 0, buf.Length)) > 0)
+            {
+                if (offset + written + n > up.size) throw Err(400, "Chunk overflow");
+                fs.Write(buf, 0, n); written += n;
+            }
+        }
+        Send(c, new { ok = true });
+    }
+
+    static void FsUploadDone(HttpContext c)
+    {
+        var u = RequireAdmin(c);
+        var req = Body(c);
+        var up = GetUpload(c, u, req.token);
+        lock (FsUploads) FsUploads.Remove(req.token);
+        if (req.recursive) { try { File.Delete(up.temp); } catch { } Send(c, new { ok = true }); return; }   // cancelled
+        var final = up.final;
+        for (int i = 1; File.Exists(final); i++)
+            final = Path.Combine(Path.GetDirectoryName(up.final), Path.GetFileNameWithoutExtension(up.final) + " (" + i + ")" + Path.GetExtension(up.final));
+        File.Move(up.temp, final);
+        Send(c, new { ok = true, name = Path.GetFileName(final) });
     }
 
     // ---------- Microsoft Defender scanning ----------
