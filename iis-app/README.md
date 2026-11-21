@@ -5,7 +5,7 @@ Designed & developed by [AJ System Soft](https://www.ajsystemsoft.in) · AI tool
 Local-network file transfer. **No SQL Server, no Node.js, no build step.** Pure IIS + ASP.NET (.NET Framework 4.5+, built into Windows).
 
 ## One-click setup (recommended)
-Right-click **setup-safe.bat** → Run as administrator. It only adds ASP.NET features, creates its own app pool + site on 8080, sets App_Data permission and firewall, restarts only its own site, and tests the API. Other IIS sites are not restarted or changed.
+Right-click **setup-safe.bat** → Run as administrator (pure batch, no PowerShell needed; window stays open and writes setup-log.txt). It only adds ASP.NET features, creates its own app pool + site on 8080, sets App_Data permission and firewall, restarts only its own site, and tests the API. Other IIS sites are not restarted or changed.
 
 ## Manual setup (any Windows PC)
 1. Enable IIS: *Control Panel → Programs → Turn Windows features on/off* → tick **Internet Information Services** and under
