@@ -226,7 +226,9 @@ function render(){
 $('list').onclick=e=>{const b=e.target.closest('.x');if(b){files.splice(+b.dataset.i,1);render()}};
 $('clearBtn').onclick=e=>{e.preventDefault();if(!busy){files=[];render()}};
 
-async function j(url,opt={}){const r=await fetch(url,opt);const ct=r.headers.get('content-type')||'';if(!ct.includes('json'))throw new Error('Server API not running (HTTP '+r.status+'). Enable ASP.NET 4.x in Windows Features and give the app pool write access to iis-app\\App_Data.');const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('HTTP '+r.status));return d}
+async function j(url,opt={}){const r=await fetch(url,opt);const ct=r.headers.get('content-type')||'';const step=(/action=(\w+)/.exec(url)||[])[1]||'';
+  if(!ct.includes('json')){let hint='IIS did not run the upload API.';if(r.status===405)hint='IIS blocked the request (HTTP 405) — run setup-safe.bat as administrator.';else if(r.status===404||r.status===500)hint='ASP.NET handler not available (HTTP '+r.status+') — run setup-safe.bat as administrator.';throw new Error(hint+' [step: '+step+']')}
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error((d.error||('HTTP '+r.status))+' [step: '+step+']');return d}
 
 // send
 $('sendBtn').onclick=async()=>{
@@ -241,7 +243,7 @@ $('sendBtn').onclick=async()=>{
     const tick=()=>{const p=Math.min(100,done/total*100);$('barI').style.width=p+'%';$('pct').textContent=p.toFixed(1)+'%';
       const el=(performance.now()-t0)/1000,s=done/el;if(el>.3){$('speed').textContent=fmt(s)+'/s';$('eta').textContent=ftime((total-done)/s)}};
     const worker=async()=>{while(next<jobs.length){const jb=jobs[next++],f=files[jb.i];
-      for(let t=0;;t++){try{await j(`${API}?action=chunk&code=${code}&file=${jb.i}&offset=${jb.o}`,{method:'PUT',body:f.slice(jb.o,jb.o+jb.len),signal:ctrl.signal});break}
+      for(let t=0;;t++){try{await j(`${API}?action=chunk&code=${code}&file=${jb.i}&offset=${jb.o}`,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:f.slice(jb.o,jb.o+jb.len),signal:ctrl.signal});break}
         catch(e){if(ctrl.signal.aborted||t>=4)throw e;await new Promise(r=>setTimeout(r,600*(t+1)))}}
       done+=jb.len;fdone[jb.i]+=jb.len;const el=$('fp'+jb.i);if(el)el.style.width=(fdone[jb.i]/(f.size||1)*100)+'%';tick()}};
     await Promise.all(Array.from({length:Math.min(PARALLEL,jobs.length||1)},worker));

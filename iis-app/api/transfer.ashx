@@ -34,6 +34,7 @@ public class TransferHandler : IHttpHandler
         {
             switch ((c.Request["action"] ?? "").ToLowerInvariant())
             {
+                case "ping": Send(c, new { ok = true, framework = Environment.Version.ToString() }); break;
                 case "init": Init(c); break;
                 case "chunk": Chunk(c); break;
                 case "complete": Complete(c); break;
@@ -121,7 +122,7 @@ public class TransferHandler : IHttpHandler
         Send(c, new { code });
     }
 
-    // PUT raw bytes ?action=chunk&code=X&file=i&offset=n
+    // POST raw bytes ?action=chunk&code=X&file=i&offset=n
     static void Chunk(HttpContext c)
     {
         var code = CleanCode(c.Request["code"]);
