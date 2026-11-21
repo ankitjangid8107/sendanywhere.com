@@ -24,6 +24,16 @@ Right-click **setup-safe.bat** → Run as administrator (pure batch, no PowerShe
 - Executables and scripts get an "Executable" warning badge, but they are not blocked.
 - Downloads are always sent as attachments, and security headers are set. Nothing loads from the internet, so the app works fully offline.
 
+## Features
+- Send files or whole folders, up to 50 GB per file, 6 parallel chunks with live speed/ETA and progress in the tab title
+- Choose expiry (1 h / 6 h / 24 h / 3 days) and an optional PIN for a transfer
+- QR code + link for phones, download counter, "Stop sharing" deletes files instantly
+- Microsoft Defender scan with live status; only infected files are blocked
+- Dark/light theme, mobile layout, works fully offline (no CDN)
+
+## Port forwarding / internet (optional, off by default)
+In `iis-app/web.config` set `AllowInternet` to `true` and `AccessKey` to a long secret (8+ chars). Internet users are asked for the key once; LAN users are not. Wrong codes, PINs and keys are rate-limited per IP. Use a PIN on every transfer you share over the internet.
+
 ## How it works
 - Files upload in 8 MB chunks, 4 in parallel, written directly at their offset (no merge step) — saturates LAN speed; per-file limit 50 GB.
 - Download uses IIS `TransmitFile` (kernel-mode, zero-copy).

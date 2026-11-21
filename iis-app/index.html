@@ -70,8 +70,8 @@ h1{font-size:clamp(30px,5vw,52px);line-height:1.1;margin:16px 0 10px;letter-spac
 .result .lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.12em}
 .code{font:800 44px/1.1 ui-monospace,Consolas,monospace;letter-spacing:10px;margin:6px 0 12px;cursor:pointer}
 .share{display:flex;gap:8px}.share input{flex:1}.share .btn{padding:10px 14px}
-input.f{width:100%;background:rgba(127,127,127,.07);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;transition:.2s}
-input.f:focus{border-color:var(--a);box-shadow:0 0 0 4px rgba(91,124,255,.15)}
+input.f,select.f{width:100%;background:rgba(127,127,127,.07);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;transition:.2s}
+input.f:focus,select.f:focus{border-color:var(--a);box-shadow:0 0 0 4px rgba(91,124,255,.15)}
 .otp{display:flex;gap:8px;justify-content:center;margin:6px 0 4px}
 .otp input{width:48px;height:58px;text-align:center;font:800 24px ui-monospace,Consolas,monospace;text-transform:uppercase;padding:0}
 .msg{margin-top:12px;font-size:13px;min-height:1px}.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
@@ -101,6 +101,15 @@ footer a{color:var(--text);font-weight:600;text-decoration:none}footer a:hover{c
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;transition:.3s;z-index:50;pointer-events:none}
 .toast.on{transform:translate(-50%,0);opacity:1}
 .hidden{display:none!important}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.opts label{font-size:12px;color:var(--muted);display:block;margin-bottom:4px}
+select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}select.f option{color:#0f172a}
+.addrow{display:flex;gap:8px;margin-top:10px}.addrow .btn{flex:1;padding:10px;font-size:13px}
+.qr{display:flex;justify-content:center;margin:4px 0 12px}.qr canvas,.qr img{background:#fff;padding:8px;border-radius:12px;width:150px;height:150px;image-rendering:pixelated}
+.meta{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:10px;font-size:12px;color:var(--muted)}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)}
+.lockbox{margin-top:10px;display:flex;gap:8px}.lockbox .btn{flex:0 0 auto;padding:10px 16px}
+.h .del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px}.h .del:hover{color:var(--err)}
+@media(max-width:560px){.opts{grid-template-columns:1fr}}
 .sb{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;margin-top:4px;white-space:nowrap}
 .sb.pending,.sb.scanning{background:rgba(91,124,255,.15);color:var(--a)}.sb.clean{background:rgba(34,197,94,.15);color:var(--ok)}
 .sb.threat{background:rgba(244,63,94,.15);color:var(--err)}.sb.skipped{background:rgba(234,179,8,.15);color:#d4a106}
@@ -128,7 +137,7 @@ footer a{color:var(--text);font-weight:600;text-decoration:none}footer a:hover{c
 
 <main class="container">
   <section class="hero">
-    <span class="badge"><span class="dot"></span> Running on your local network</span>
+    <span class="badge"><span class="dot"></span> <span id="srvStatus">Running on your local network</span></span>
     <h1>Send files <span class="grad">superfast</span><br>across your network</h1>
     <p>Share files up to 50 GB between any devices on the same Wi-Fi or LAN. No sign-up, no internet, no limits.</p>
     <div class="chips"><span>⚡ Parallel chunk upload</span><span>📦 Up to 50 GB per file</span><span>🔁 Auto-retry</span><span>🔒 Stays on your network</span><span>🛡️ Windows Defender scan</span><span>📶 Works offline</span></div>
@@ -145,6 +154,11 @@ footer a{color:var(--text);font-weight:600;text-decoration:none}footer a:hover{c
       </div>
       <div id="list" class="list"></div>
       <div id="summary" class="summary hidden"><span id="sumCount"></span><a href="#" id="clearBtn">Clear all</a></div>
+      <div class="addrow"><button class="btn ghost" id="addFilesBtn">＋ Add files</button><button class="btn ghost" id="addFolderBtn">📁 Add folder</button><input id="pickDir" type="file" webkitdirectory multiple hidden></div>
+      <div class="opts">
+        <div><label for="expSel">Expires after</label><select class="f" id="expSel"><option value="1">1 hour</option><option value="6">6 hours</option><option value="24" selected>24 hours</option><option value="72">3 days</option></select></div>
+        <div><label for="pinIn">PIN protection (optional)</label><input class="f" id="pinIn" type="password" maxlength="32" placeholder="4+ characters" autocomplete="new-password"></div>
+      </div>
       <div class="row"><button class="btn" id="sendBtn" disabled>Send files</button><button class="btn danger hidden" id="cancelBtn">Cancel</button></div>
       <div id="prog" class="prog hidden">
         <div class="bar"><i id="barI"></i></div>
@@ -153,8 +167,10 @@ footer a{color:var(--text);font-weight:600;text-decoration:none}footer a:hover{c
       <div id="result" class="result hidden">
         <div class="lbl">Your transfer code</div>
         <div class="code" id="codeOut" title="Click to copy"></div>
+        <div class="qr" id="qrOut"></div>
         <div class="share"><input class="f" id="linkOut" readonly><button class="btn" id="copyBtn">Copy link</button></div>
-        <p class="sub" style="margin:10px 0 0">Expires in 24 hours · open the link on any device on this network</p>
+        <div class="meta"><span id="expOut"></span><span id="lockOut"></span><span id="dlCount"></span></div>
+        <div class="row"><button class="btn ghost" id="newBtn">Send more files</button><button class="btn danger" id="stopBtn">Stop sharing</button></div>
       </div>
       <div id="sendScan" class="scanbox"></div>
       <div id="sendMsg" class="msg"></div>
@@ -165,6 +181,7 @@ footer a{color:var(--text);font-weight:600;text-decoration:none}footer a:hover{c
       <p class="sub">Type the code shown on the sender's screen.</p>
       <div class="otp" id="otp"></div>
       <div class="row"><button class="btn" id="recvBtn">Get files</button><button class="btn ghost" id="pasteBtn" style="flex:0 0 auto">Paste</button></div>
+      <div id="pinBox" class="lockbox hidden"><input class="f" id="pinRecv" type="password" maxlength="32" placeholder="🔒 Enter PIN"><button class="btn" id="pinGo">Unlock</button></div>
       <div id="recvMsg" class="msg"></div>
       <div id="files"></div>
       <div class="hist" id="histBox">
@@ -199,6 +216,7 @@ footer a{color:var(--text);font-weight:600;text-decoration:none}footer a:hover{c
 </div></footer>
 <div class="toast" id="toast"></div>
 
+<script src="assets/qrcode.js"></script>
 <script>
 const API='api/transfer.ashx',CHUNK=8*1024*1024,PARALLEL=6,MAX=50*1024**3;
 const $=id=>document.getElementById(id);
@@ -239,52 +257,56 @@ function render(){
 $('list').onclick=e=>{const b=e.target.closest('.x');if(b){files.splice(+b.dataset.i,1);render()}};
 $('clearBtn').onclick=e=>{e.preventDefault();if(!busy){files=[];render()}};
 
-async function j(url,opt={}){const r=await fetch(url,opt);const ct=r.headers.get('content-type')||'';const step=(/action=(\w+)/.exec(url)||[])[1]||'';
+let AK=store.get('ak','');const akq=()=>AK?'&ak='+encodeURIComponent(AK):'';
+async function j(url,opt={}){if(AK){opt.headers=Object.assign({},opt.headers,{'X-Access-Key':AK})}const r=await fetch(url,opt);
+  if(r.status===401){const d=await r.clone().json().catch(()=>({}));if(d.error==='ACCESS_KEY'){const k=prompt('This server needs an access key (internet access):');if(k){AK=k;store.set('ak',k);return j(url,opt)}throw new Error('Access key required')}
+    if(d.error==='PIN_REQUIRED'){const e=new Error('PIN_REQUIRED');e.pin=true;throw e}}const ct=r.headers.get('content-type')||'';const step=(/action=(\w+)/.exec(url)||[])[1]||'';
   if(!ct.includes('json')){let hint='IIS did not run the upload API.';if(r.status===405)hint='IIS blocked the request (HTTP 405) — run setup-safe.bat as administrator.';else if(r.status===404||r.status===500)hint='ASP.NET handler not available (HTTP '+r.status+') — run setup-safe.bat as administrator.';throw new Error(hint+' [step: '+step+']')}
   const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error((d.error||('HTTP '+r.status))+' [step: '+step+']');return d}
 
 // send
 $('sendBtn').onclick=async()=>{
-  busy=true;ctrl=new AbortController();render();$('sendScan').innerHTML='';clearTimeout($('sendScan')._t);
+  busy=true;ctrl=new AbortController();render();lockWake(true);$('sendScan').innerHTML='';clearTimeout($('sendScan')._t);
   $('cancelBtn').classList.remove('hidden');$('sendMsg').className='msg';$('sendMsg').textContent='';$('prog').classList.remove('hidden');$('result').classList.add('hidden');
   $('barI').style.width='0';$('pct').textContent='0%';$('speed').textContent='—';$('eta').textContent='—';
   try{
-    const {code}=await j(API+'?action=init',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({files:files.map(f=>({name:f.name,size:f.size,type:f.type||'application/octet-stream'}))}),signal:ctrl.signal});
+    const {code,owner}=await j(API+'?action=init',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hours:+$('expSel').value,pin:$('pinIn').value,files:files.map(f=>({name:f.name,size:f.size,type:f.type||'application/octet-stream'}))}),signal:ctrl.signal});
     const jobs=[],fdone=files.map(()=>0);
     files.forEach((f,i)=>{for(let o=0;o<f.size;o+=CHUNK)jobs.push({i,o,len:Math.min(CHUNK,f.size-o)})});
     const total=files.reduce((a,f)=>a+f.size,0)||1;let done=0,next=0;const t0=performance.now();
-    const tick=()=>{const p=Math.min(100,done/total*100);$('barI').style.width=p+'%';$('pct').textContent=p.toFixed(1)+'%';
+    const tick=()=>{const p=Math.min(100,done/total*100);$('barI').style.width=p+'%';$('pct').textContent=p.toFixed(1)+'%';document.title=Math.floor(p)+'% · '+baseTitle;
       const el=(performance.now()-t0)/1000,s=done/el;if(el>.3){$('speed').textContent=fmt(s)+'/s';$('eta').textContent=ftime((total-done)/s)}};
     const worker=async()=>{while(next<jobs.length){const jb=jobs[next++],f=files[jb.i];
       for(let t=0;;t++){let sent=0;
-        try{await xhrPost(`${API}?action=chunk&code=${code}&file=${jb.i}&offset=${jb.o}`,f.slice(jb.o,jb.o+jb.len),n=>{done+=n-sent;fdone[jb.i]+=n-sent;sent=n;bump(jb.i,f);tick()});
+        try{await xhrPost(`${API}?action=chunk&code=${code}&owner=${owner}&file=${jb.i}&offset=${jb.o}`,f.slice(jb.o,jb.o+jb.len),n=>{done+=n-sent;fdone[jb.i]+=n-sent;sent=n;bump(jb.i,f);tick()});
           done+=jb.len-sent;fdone[jb.i]+=jb.len-sent;break}
         catch(e){done-=sent;fdone[jb.i]-=sent;if(ctrl.signal.aborted||t>=4)throw e;await new Promise(r=>setTimeout(r,600*(t+1)))}}
       bump(jb.i,f);tick()}};
     const bump=(i,f)=>{const el=$('fp'+i);if(el)el.style.width=Math.min(100,fdone[i]/(f.size||1)*100)+'%'};
     await Promise.all(Array.from({length:Math.min(PARALLEL,jobs.length||1)},worker));
-    const fin=await j(`${API}?action=complete&code=${code}`,{method:'POST',signal:ctrl.signal});watchScan(code,$('sendScan'),fin);
+    const fin=await j(`${API}?action=complete&code=${code}&owner=${owner}`,{method:'POST',signal:ctrl.signal});current={code,owner};watchScan(code,$('sendScan'),fin,owner);
     done=total;tick();files.forEach((_,i)=>{const el=$('fp'+i);if(el)el.style.width='100%'});
     const link=location.origin+location.pathname.replace(/index\.html$/,'')+'?code='+code;
-    $('codeOut').textContent=code;$('linkOut').value=link;$('result').classList.remove('hidden');
+    $('codeOut').textContent=code;$('linkOut').value=link;$('result').classList.remove('hidden');drawQR(link);
+    $('expOut').textContent='⏱ Expires '+new Date(fin.expires).toLocaleString();$('lockOut').textContent=fin.locked?'🔒 PIN protected':'';$('pinIn').value='';
     $('sendMsg').className='msg ok';$('sendMsg').textContent=`✓ ${files.length} file(s) uploaded in ${ftime((performance.now()-t0)/1000)}`;
-    const h=store.get('hist',[]);h.unshift({code,name:files.length>1?`${files[0].name} +${files.length-1} more`:files[0].name,size:total,t:Date.now()});store.set('hist',h.slice(0,10));renderHist();
+    const h=store.get('hist',[]);h.unshift({code,owner,name:files.length>1?`${files[0].name} +${files.length-1} more`:files[0].name,size:total,t:Date.now()});store.set('hist',h.slice(0,10));renderHist();files=[];render();
     toast('Upload complete');
   }catch(e){$('sendMsg').className='msg err';$('sendMsg').textContent=ctrl.signal.aborted?'Upload cancelled.':'Error: '+e.message}
-  busy=false;$('cancelBtn').classList.add('hidden');render();
+  busy=false;lockWake(false);document.title=baseTitle;$('cancelBtn').classList.add('hidden');render();
 };
 $('cancelBtn').onclick=()=>ctrl&&ctrl.abort();
-function xhrPost(url,body,onProg){return new Promise((res,rej)=>{const x=new XMLHttpRequest();x.open('POST',url);x.setRequestHeader('Content-Type','application/octet-stream');
+function xhrPost(url,body,onProg){return new Promise((res,rej)=>{const x=new XMLHttpRequest();x.open('POST',url);x.setRequestHeader('Content-Type','application/octet-stream');if(AK)x.setRequestHeader('X-Access-Key',AK);
   x.upload.onprogress=e=>onProg(e.loaded);x.onload=()=>{let d={};try{d=JSON.parse(x.responseText)}catch{}x.status===200&&d.ok?res(d):rej(new Error(d.error||('HTTP '+x.status+' [step: chunk]')))};
   x.onerror=()=>rej(new Error('Network error'));x.onabort=()=>rej(new Error('Cancelled'));const ab=()=>x.abort();ctrl.signal.addEventListener('abort',ab,{once:true});x.send(body)})}
 const SCAN={pending:'Waiting for scan',scanning:'Scanning…',clean:'✓ Virus-free',threat:'⚠ Threat blocked',skipped:'Not scanned'};
 const badge=f=>`<span class="sb ${f.scan}" title="${esc(f.scanDetail||'')}">${SCAN[f.scan]||f.scan}</span>${f.risky&&f.scan!=='threat'?'<span class="sb risky" title="Programs and scripts can harm your PC. Only open if you trust the sender.">Executable</span>':''}`;
 const scanning=d=>d.files.some(f=>f.scan==='pending'||f.scan==='scanning');
-function watchScan(code,box,d){clearTimeout(box._t);
+function watchScan(code,box,d,owner){clearTimeout(box._t);if(current&&current.code===code){$('dlCount').textContent='⬇ '+(d.downloads||0)+' download(s)'}
   const draw=d=>{const c=d.files.reduce((a,f)=>(a[f.scan]=(a[f.scan]||0)+1,a),{});
     box.innerHTML=`<div class="summary" style="margin:0 0 6px"><span>🛡️ Security check</span><span>${scanning(d)?'in progress…':'finished'}</span></div>`+
       d.files.slice(0,50).map(f=>`<div class="item"><div class="nm"><div>${esc(f.name)}</div>${badge(f)}</div></div>`).join('')+(c.threat?`<div class="msg err">${c.threat} file(s) blocked by Microsoft Defender.</div>`:'')};
-  draw(d);if(scanning(d))box._t=setTimeout(async()=>{try{watchScan(code,box,await j(`${API}?action=info&code=${code}`))}catch{}},1500)}
+  draw(d);if(current&&current.code===code)box._t=setTimeout(async()=>{try{watchScan(code,box,await j(`${API}?action=info&code=${code}&owner=${owner}`),owner)}catch{}},scanning(d)?1500:5000)}
 $('copyBtn').onclick=()=>copy($('linkOut').value);
 $('codeOut').onclick=()=>copy($('codeOut').textContent);
 window.addEventListener('beforeunload',e=>{if(busy){e.preventDefault();e.returnValue=''}});
@@ -308,29 +330,46 @@ async function receive(){
   if(code.length!==6){$('recvMsg').className='msg err';$('recvMsg').textContent='Enter the full 6-character code.';return}
   if(code===lastCode&&$('files').innerHTML)return;lastCode=code;$('files').innerHTML='';
   $('recvBtn').disabled=true;
-  try{const d=await j(`${API}?action=info&code=${code}`);
+  try{const d=await j(`${API}?action=info&code=${code}${pinq()}`);$('pinBox').classList.add('hidden');
     const tot=d.files.reduce((a,f)=>a+f.size,0);
     $('recvMsg').className='msg ok';$('recvMsg').textContent=`✓ ${d.files.length} file(s) · ${fmt(tot)} · expires ${new Date(d.expires).toLocaleString()}`;
     drawRecv(code,d);
-  }catch(e){lastCode='';$('recvMsg').className='msg err';$('recvMsg').textContent=e.message}
+  }catch(e){lastCode='';if(e.pin){$('pinBox').classList.remove('hidden');$('recvMsg').className='msg err';$('recvMsg').textContent=recvPin?'Wrong PIN, try again.':'🔒 This transfer is PIN protected.';$('pinRecv').focus()}else{$('recvMsg').className='msg err';$('recvMsg').textContent=e.message}}
   $('recvBtn').disabled=false;
 }
 $('recvBtn').onclick=receive;
 function drawRecv(code,d){if(lastCode!==code)return;
   const ok=f=>f.scan==='clean'||f.scan==='skipped',ready=d.files.filter(ok);
-  $('files').innerHTML=d.files.map((f,i)=>`<div class="dl"><span class="item" style="padding:0;border:0;background:none"><span class="ext">${esc(ext(f.name))}</span></span><div class="nm"><div>${esc(f.name)}</div><small>${fmt(f.size)}</small> ${badge(f)}</div>${f.scan==='threat'?'':`<a class="btn${ok(f)?'':' off'}" href="${API}?action=download&code=${code}&file=${i}">${ok(f)?'Download':'Scanning…'}</a>`}</div>`).join('')
+  $('files').innerHTML=d.files.map((f,i)=>`<div class="dl"><span class="item" style="padding:0;border:0;background:none"><span class="ext">${esc(ext(f.name))}</span></span><div class="nm"><div>${esc(f.name)}</div><small>${fmt(f.size)}</small> ${badge(f)}</div>${f.scan==='threat'?'':`<a class="btn${ok(f)?'':' off'}" href="${API}?action=download&code=${code}&file=${i}${pinq()}${akq()}">${ok(f)?'Download':'Scanning…'}</a>`}</div>`).join('')
     +(ready.length>1?`<button class="btn" id="allBtn" style="width:100%;margin-top:12px">Download all (${ready.length})</button>`:'');
-  const all=$('allBtn');if(all)all.onclick=()=>d.files.forEach((f,i)=>ok(f)&&setTimeout(()=>{const a=document.createElement('a');a.href=`${API}?action=download&code=${code}&file=${i}`;a.download='';document.body.appendChild(a);a.click();a.remove()},i*600));
-  clearTimeout(drawRecv._t);if(scanning(d))drawRecv._t=setTimeout(async()=>{try{drawRecv(code,await j(`${API}?action=info&code=${code}`))}catch{}},1500)}
+  const all=$('allBtn');if(all)all.onclick=()=>d.files.forEach((f,i)=>ok(f)&&setTimeout(()=>{const a=document.createElement('a');a.href=`${API}?action=download&code=${code}&file=${i}${pinq()}${akq()}`;a.download='';document.body.appendChild(a);a.click();a.remove()},i*600));
+  clearTimeout(drawRecv._t);if(scanning(d))drawRecv._t=setTimeout(async()=>{try{drawRecv(code,await j(`${API}?action=info&code=${code}${pinq()}`))}catch{}},1500)}
 
 // history
 function renderHist(){const h=store.get('hist',[]).filter(x=>Date.now()-x.t<864e5);
   $('histBox').classList.toggle('hidden',!h.length);
-  $('hist').innerHTML=h.map(x=>`<div class="h" data-c="${esc(x.code)}"><code>${esc(x.code)}</code><span>${esc(x.name)} · ${fmt(x.size)}</span></div>`).join('')}
-$('hist').onclick=e=>{const r=e.target.closest('.h');if(r)copy(location.origin+location.pathname.replace(/index\.html$/,'')+'?code='+r.dataset.c)};
+  $('hist').innerHTML=h.map((x,i)=>`<div class="h" data-c="${esc(x.code)}"><code>${esc(x.code)}</code><span style="flex:1">${esc(x.name)} · ${fmt(x.size)}</span>${x.owner?`<button class="del" data-i="${i}" title="Stop sharing">×</button>`:''}</div>`).join('')}
+$('hist').onclick=async e=>{const del=e.target.closest('.del');if(del){e.stopPropagation();const h=store.get('hist',[]).filter(x=>Date.now()-x.t<864e5),x=h[+del.dataset.i];if(x&&confirm('Stop sharing '+x.code+'? The files will be deleted.')){await stopShare(x.code,x.owner)}return}const r=e.target.closest('.h');if(r)copy(location.origin+location.pathname.replace(/index\.html$/,'')+'?code='+r.dataset.c)};
 $('histClear').onclick=()=>{store.set('hist',[]);renderHist()};
 renderHist();
 
+// ---- extra features ----
+let current=null,recvPin='',wake=null;const baseTitle=document.title;
+const pinq=()=>recvPin?'&pin='+encodeURIComponent(recvPin):'';
+$('pinGo').onclick=()=>{recvPin=$('pinRecv').value;lastCode='';receive()};
+$('pinRecv').onkeydown=e=>{if(e.key==='Enter')$('pinGo').click()};
+$('addFilesBtn').onclick=()=>!busy&&pick.click();
+$('addFolderBtn').onclick=()=>!busy&&$('pickDir').click();
+$('pickDir').onchange=()=>{addFiles($('pickDir').files);$('pickDir').value=''};
+$('newBtn').onclick=()=>{$('result').classList.add('hidden');$('prog').classList.add('hidden');$('sendScan').innerHTML='';clearTimeout($('sendScan')._t);current=null;$('sendMsg').textContent='';pick.click()};
+$('stopBtn').onclick=async()=>{if(current&&confirm('Stop sharing? The files will be deleted from the server.'))await stopShare(current.code,current.owner)};
+async function stopShare(code,owner){try{await j(`${API}?action=delete&code=${code}&owner=${encodeURIComponent(owner)}`,{method:'POST'})}catch{}
+  store.set('hist',store.get('hist',[]).filter(x=>x.code!==code));renderHist();
+  if(current&&current.code===code){current=null;clearTimeout($('sendScan')._t);$('result').classList.add('hidden');$('sendScan').innerHTML='';$('prog').classList.add('hidden');$('sendMsg').className='msg';$('sendMsg').textContent='Sharing stopped. Files deleted.'}
+  toast('Sharing stopped')}
+function drawQR(text){const box=$('qrOut');box.innerHTML='';try{const q=qrcode(0,'M');q.addData(text);q.make();box.innerHTML=q.createImgTag(4,0)}catch{}}
+async function lockWake(on){try{if(on&&'wakeLock'in navigator)wake=await navigator.wakeLock.request('screen');else if(wake){await wake.release();wake=null}}catch{}}
+(async()=>{try{const p=await j(API+'?action=ping');$('srvStatus').textContent=(p.scanner?'🛡️ Defender active':'Online')+(p.freeSpace>0?' · '+fmt(p.freeSpace)+' free':'')}catch{$('srvStatus').textContent='Server API not reachable';document.querySelector('.dot').style.background='var(--err)'}})();
 const qc=new URLSearchParams(location.search).get('code');if(qc){setCode(qc);receive()}
 </script>
 </body>
