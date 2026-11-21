@@ -51,19 +51,13 @@ if not exist "%APPCMD%" (
 )
 
 echo.
-echo [2/6] Checking port %PORT%...
-for /f "tokens=*" %%L in ('"%APPCMD%" list site 2^>nul ^| findstr /i ":%PORT%:"') do (
-  echo %%L | findstr /i /c:"\"%NAME%\"" >nul || (
-    echo       Port %PORT% is already used by: %%L
-    goto :askport
-  )
+echo [2/6] Finding a free port (other software is never touched)...
+"%APPCMD%" stop site "%NAME%" >nul 2>&1
+for %%P in (8080 8090 8181 8282 8383 8484 8585 9090 9191 9292 9393 9494 9595 7070 7171) do (
+  call :portfree %%P && (set "PORT=%%P" & goto :portok)
 )
-goto :portok
-:askport
-echo.
-set /p "PORT=      Enter a different free port for SendAnywhere (e.g. 8090): "
-if "%PORT%"=="" goto :askport
-goto :portok
+echo [X] No free port found. Close some programs and run again.
+goto :end
 :portok
 echo       Using port %PORT%
 
@@ -97,6 +91,10 @@ echo [6/6] Restarting ONLY the %NAME% site...
 "%APPCMD%" recycle apppool "%NAME%" >nul 2>&1
 "%APPCMD%" stop site "%NAME%" >nul 2>&1
 "%APPCMD%" start site "%NAME%" >>"%LOG%" 2>&1
+if errorlevel 1 (
+  echo [X] Site could not start on port %PORT%. See setup-log.txt
+  goto :end
+)
 
 echo.
 where curl >nul 2>&1 && (
@@ -119,3 +117,10 @@ start "" "http://localhost:%PORT%"
 :end
 echo.
 pause
+exit /b
+
+:portfree
+rem returns errorlevel 0 when nothing is listening on port %1
+netstat -ano | findstr /r /c:":%1 .*LISTENING" >nul 2>&1 && exit /b 1
+"%APPCMD%" list site 2>nul | findstr /c:":%1:" | findstr /v /c:"\"%NAME%\"" >nul 2>&1 && exit /b 1
+exit /b 0

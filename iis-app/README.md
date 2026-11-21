@@ -31,6 +31,7 @@ Right-click **setup-safe.bat** → Run as administrator (pure batch, no PowerShe
 - Receiver enters 6-char code or opens the share link `?code=XXXXXX`.
 
 ## Troubleshooting
+- **Port 8080 busy (another program answers, e.g. "Invalid url")**: setup-safe.bat now picks the next free port automatically (8090, 8181, ...) and prints the URL to use.
 - **HTTP 405 on upload**: ASP.NET 4.x is not enabled or the app pool is "No Managed Code". Run `setup-safe.bat` as administrator.
 - **403.14 Forbidden**: the site's physical path must be the `iis-app` folder (or the repo root, which now redirects to `iis-app/`).
 - **"Server API not running" / 404.3 on transfer.ashx**: Windows Features → IIS → Application Development Features → tick **ASP.NET 4.x**, **.NET Extensibility 4.x**, **ISAPI Extensions**, **ISAPI Filters**. Then run `iisreset`.
