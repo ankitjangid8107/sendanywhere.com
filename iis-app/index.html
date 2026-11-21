@@ -101,6 +101,18 @@ footer a{color:var(--text);font-weight:600;text-decoration:none}footer a:hover{c
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,40px);opacity:0;background:var(--text);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:600;transition:.3s;z-index:50;pointer-events:none}
 .toast.on{transform:translate(-50%,0);opacity:1}
 .hidden{display:none!important}
+.sb{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;margin-top:4px;white-space:nowrap}
+.sb.pending,.sb.scanning{background:rgba(91,124,255,.15);color:var(--a)}.sb.clean{background:rgba(34,197,94,.15);color:var(--ok)}
+.sb.threat{background:rgba(244,63,94,.15);color:var(--err)}.sb.skipped{background:rgba(234,179,8,.15);color:#d4a106}
+.sb.scanning:before,.sb.pending:before{content:"";width:9px;height:9px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.sb.risky{background:rgba(234,179,8,.15);color:#d4a106;margin-left:4px}
+.btn.off{pointer-events:none;opacity:.45}
+.scanbox{margin-top:12px;text-align:left}
+@media(max-width:560px){.card{padding:18px;border-radius:16px}.hero{padding:30px 0 18px}.hero p{font-size:15px}.code{font-size:34px;letter-spacing:6px}
+ .otp{gap:5px}.otp input{width:calc((100% - 25px)/6);max-width:48px;height:52px;font-size:21px}.stats b{font-size:13px}.share{flex-direction:column}
+ .dl{flex-wrap:wrap}.dl .btn{width:100%}.features{gap:10px}.feat{padding:14px}nav .container{height:58px}.brand{font-size:15px}.drop{padding:28px 12px}}
+@media (prefers-reduced-motion:reduce){*,*:before{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
@@ -119,7 +131,7 @@ footer a{color:var(--text);font-weight:600;text-decoration:none}footer a:hover{c
     <span class="badge"><span class="dot"></span> Running on your local network</span>
     <h1>Send files <span class="grad">superfast</span><br>across your network</h1>
     <p>Share files up to 50 GB between any devices on the same Wi-Fi or LAN. No sign-up, no internet, no limits.</p>
-    <div class="chips"><span>⚡ Parallel chunk upload</span><span>📦 Up to 50 GB per file</span><span>🔁 Auto-retry</span><span>🔒 Stays on your network</span></div>
+    <div class="chips"><span>⚡ Parallel chunk upload</span><span>📦 Up to 50 GB per file</span><span>🔁 Auto-retry</span><span>🔒 Stays on your network</span><span>🛡️ Windows Defender scan</span><span>📶 Works offline</span></div>
   </section>
 
   <div class="grid">
@@ -144,6 +156,7 @@ footer a{color:var(--text);font-weight:600;text-decoration:none}footer a:hover{c
         <div class="share"><input class="f" id="linkOut" readonly><button class="btn" id="copyBtn">Copy link</button></div>
         <p class="sub" style="margin:10px 0 0">Expires in 24 hours · open the link on any device on this network</p>
       </div>
+      <div id="sendScan" class="scanbox"></div>
       <div id="sendMsg" class="msg"></div>
     </section>
 
@@ -164,7 +177,7 @@ footer a{color:var(--text);font-weight:600;text-decoration:none}footer a:hover{c
   <section class="features">
     <div class="feat"><span class="e">⚡</span><b>Full LAN speed</b><p>Uploads 8 MB chunks in parallel to use all your bandwidth.</p></div>
     <div class="feat"><span class="e">📦</span><b>50 GB files</b><p>Large files are written straight to disk, so they don't fill up memory.</p></div>
-    <div class="feat"><span class="e">🔁</span><b>Reliable</b><p>Failed chunks retry automatically.</p></div>
+    <div class="feat"><span class="e">🛡️</span><b>Virus scanned</b><p>Every file is checked by Microsoft Defender. Only infected files are blocked.</p></div>
     <div class="feat"><span class="e">🧹</span><b>Auto cleanup</b><p>Transfers are deleted from the server after 24 hours.</p></div>
   </section>
 
@@ -232,7 +245,7 @@ async function j(url,opt={}){const r=await fetch(url,opt);const ct=r.headers.get
 
 // send
 $('sendBtn').onclick=async()=>{
-  busy=true;ctrl=new AbortController();render();
+  busy=true;ctrl=new AbortController();render();$('sendScan').innerHTML='';clearTimeout($('sendScan')._t);
   $('cancelBtn').classList.remove('hidden');$('sendMsg').className='msg';$('sendMsg').textContent='';$('prog').classList.remove('hidden');$('result').classList.add('hidden');
   $('barI').style.width='0';$('pct').textContent='0%';$('speed').textContent='—';$('eta').textContent='—';
   try{
@@ -243,11 +256,14 @@ $('sendBtn').onclick=async()=>{
     const tick=()=>{const p=Math.min(100,done/total*100);$('barI').style.width=p+'%';$('pct').textContent=p.toFixed(1)+'%';
       const el=(performance.now()-t0)/1000,s=done/el;if(el>.3){$('speed').textContent=fmt(s)+'/s';$('eta').textContent=ftime((total-done)/s)}};
     const worker=async()=>{while(next<jobs.length){const jb=jobs[next++],f=files[jb.i];
-      for(let t=0;;t++){try{await j(`${API}?action=chunk&code=${code}&file=${jb.i}&offset=${jb.o}`,{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:f.slice(jb.o,jb.o+jb.len),signal:ctrl.signal});break}
-        catch(e){if(ctrl.signal.aborted||t>=4)throw e;await new Promise(r=>setTimeout(r,600*(t+1)))}}
-      done+=jb.len;fdone[jb.i]+=jb.len;const el=$('fp'+jb.i);if(el)el.style.width=(fdone[jb.i]/(f.size||1)*100)+'%';tick()}};
+      for(let t=0;;t++){let sent=0;
+        try{await xhrPost(`${API}?action=chunk&code=${code}&file=${jb.i}&offset=${jb.o}`,f.slice(jb.o,jb.o+jb.len),n=>{done+=n-sent;fdone[jb.i]+=n-sent;sent=n;bump(jb.i,f);tick()});
+          done+=jb.len-sent;fdone[jb.i]+=jb.len-sent;break}
+        catch(e){done-=sent;fdone[jb.i]-=sent;if(ctrl.signal.aborted||t>=4)throw e;await new Promise(r=>setTimeout(r,600*(t+1)))}}
+      bump(jb.i,f);tick()}};
+    const bump=(i,f)=>{const el=$('fp'+i);if(el)el.style.width=Math.min(100,fdone[i]/(f.size||1)*100)+'%'};
     await Promise.all(Array.from({length:Math.min(PARALLEL,jobs.length||1)},worker));
-    await j(`${API}?action=complete&code=${code}`,{method:'POST',signal:ctrl.signal});
+    const fin=await j(`${API}?action=complete&code=${code}`,{method:'POST',signal:ctrl.signal});watchScan(code,$('sendScan'),fin);
     done=total;tick();files.forEach((_,i)=>{const el=$('fp'+i);if(el)el.style.width='100%'});
     const link=location.origin+location.pathname.replace(/index\.html$/,'')+'?code='+code;
     $('codeOut').textContent=code;$('linkOut').value=link;$('result').classList.remove('hidden');
@@ -258,6 +274,17 @@ $('sendBtn').onclick=async()=>{
   busy=false;$('cancelBtn').classList.add('hidden');render();
 };
 $('cancelBtn').onclick=()=>ctrl&&ctrl.abort();
+function xhrPost(url,body,onProg){return new Promise((res,rej)=>{const x=new XMLHttpRequest();x.open('POST',url);x.setRequestHeader('Content-Type','application/octet-stream');
+  x.upload.onprogress=e=>onProg(e.loaded);x.onload=()=>{let d={};try{d=JSON.parse(x.responseText)}catch{}x.status===200&&d.ok?res(d):rej(new Error(d.error||('HTTP '+x.status+' [step: chunk]')))};
+  x.onerror=()=>rej(new Error('Network error'));x.onabort=()=>rej(new Error('Cancelled'));const ab=()=>x.abort();ctrl.signal.addEventListener('abort',ab,{once:true});x.send(body)})}
+const SCAN={pending:'Waiting for scan',scanning:'Scanning…',clean:'✓ Virus-free',threat:'⚠ Threat blocked',skipped:'Not scanned'};
+const badge=f=>`<span class="sb ${f.scan}" title="${esc(f.scanDetail||'')}">${SCAN[f.scan]||f.scan}</span>${f.risky&&f.scan!=='threat'?'<span class="sb risky" title="Programs and scripts can harm your PC. Only open if you trust the sender.">Executable</span>':''}`;
+const scanning=d=>d.files.some(f=>f.scan==='pending'||f.scan==='scanning');
+function watchScan(code,box,d){clearTimeout(box._t);
+  const draw=d=>{const c=d.files.reduce((a,f)=>(a[f.scan]=(a[f.scan]||0)+1,a),{});
+    box.innerHTML=`<div class="summary" style="margin:0 0 6px"><span>🛡️ Security check</span><span>${scanning(d)?'in progress…':'finished'}</span></div>`+
+      d.files.slice(0,50).map(f=>`<div class="item"><div class="nm"><div>${esc(f.name)}</div>${badge(f)}</div></div>`).join('')+(c.threat?`<div class="msg err">${c.threat} file(s) blocked by Microsoft Defender.</div>`:'')};
+  draw(d);if(scanning(d))box._t=setTimeout(async()=>{try{watchScan(code,box,await j(`${API}?action=info&code=${code}`))}catch{}},1500)}
 $('copyBtn').onclick=()=>copy($('linkOut').value);
 $('codeOut').onclick=()=>copy($('codeOut').textContent);
 window.addEventListener('beforeunload',e=>{if(busy){e.preventDefault();e.returnValue=''}});
@@ -284,13 +311,17 @@ async function receive(){
   try{const d=await j(`${API}?action=info&code=${code}`);
     const tot=d.files.reduce((a,f)=>a+f.size,0);
     $('recvMsg').className='msg ok';$('recvMsg').textContent=`✓ ${d.files.length} file(s) · ${fmt(tot)} · expires ${new Date(d.expires).toLocaleString()}`;
-    $('files').innerHTML=d.files.map((f,i)=>`<div class="dl"><span class="item" style="padding:0;border:0;background:none"><span class="ext">${esc(ext(f.name))}</span></span><div class="nm"><div>${esc(f.name)}</div><small>${fmt(f.size)}</small></div><a class="btn" href="${API}?action=download&code=${code}&file=${i}">Download</a></div>`).join('')
-      +(d.files.length>1?`<button class="btn" id="allBtn" style="width:100%;margin-top:12px">Download all (${d.files.length})</button>`:'');
-    const all=$('allBtn');if(all)all.onclick=()=>d.files.forEach((f,i)=>setTimeout(()=>{const a=document.createElement('a');a.href=`${API}?action=download&code=${code}&file=${i}`;a.download='';document.body.appendChild(a);a.click();a.remove()},i*600));
+    drawRecv(code,d);
   }catch(e){lastCode='';$('recvMsg').className='msg err';$('recvMsg').textContent=e.message}
   $('recvBtn').disabled=false;
 }
 $('recvBtn').onclick=receive;
+function drawRecv(code,d){if(lastCode!==code)return;
+  const ok=f=>f.scan==='clean'||f.scan==='skipped',ready=d.files.filter(ok);
+  $('files').innerHTML=d.files.map((f,i)=>`<div class="dl"><span class="item" style="padding:0;border:0;background:none"><span class="ext">${esc(ext(f.name))}</span></span><div class="nm"><div>${esc(f.name)}</div><small>${fmt(f.size)}</small> ${badge(f)}</div>${f.scan==='threat'?'':`<a class="btn${ok(f)?'':' off'}" href="${API}?action=download&code=${code}&file=${i}">${ok(f)?'Download':'Scanning…'}</a>`}</div>`).join('')
+    +(ready.length>1?`<button class="btn" id="allBtn" style="width:100%;margin-top:12px">Download all (${ready.length})</button>`:'');
+  const all=$('allBtn');if(all)all.onclick=()=>d.files.forEach((f,i)=>ok(f)&&setTimeout(()=>{const a=document.createElement('a');a.href=`${API}?action=download&code=${code}&file=${i}`;a.download='';document.body.appendChild(a);a.click();a.remove()},i*600));
+  clearTimeout(drawRecv._t);if(scanning(d))drawRecv._t=setTimeout(async()=>{try{drawRecv(code,await j(`${API}?action=info&code=${code}`))}catch{}},1500)}
 
 // history
 function renderHist(){const h=store.get('hist',[]).filter(x=>Date.now()-x.t<864e5);

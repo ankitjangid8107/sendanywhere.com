@@ -18,6 +18,12 @@ Right-click **setup-safe.bat** → Run as administrator. It only adds ASP.NET fe
    `netsh advfirewall firewall add rule name="SendAnywhere" dir=in action=allow protocol=TCP localport=8080`
 6. Other devices on the same Wi-Fi/LAN open `http://<server-ip>:8080` (find IP with `ipconfig`).
 
+## Security
+- Only private-network clients (10.x, 172.16-31.x, 192.168.x, localhost) can use the API; internet IPs get 403.
+- Every uploaded file is scanned by Microsoft Defender (MpCmdRun) in the background. Only files with a detected threat are deleted and blocked; clean files download normally. If Defender is missing, files show "Not scanned" and still work.
+- Executables and scripts get an "Executable" warning badge, but they are not blocked.
+- Downloads are always sent as attachments, and security headers are set. Nothing loads from the internet, so the app works fully offline.
+
 ## How it works
 - Files upload in 8 MB chunks, 4 in parallel, written directly at their offset (no merge step) — saturates LAN speed; per-file limit 50 GB.
 - Download uses IIS `TransmitFile` (kernel-mode, zero-copy).
