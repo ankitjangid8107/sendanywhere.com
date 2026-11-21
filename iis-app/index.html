@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SendAnywhere LAN</title>
+<style>
+:root{--bg:#0b1020;--card:#141a2e;--line:#232b45;--text:#e8ecf6;--muted:#8b94b0;--accent:#4f7cff;--accent2:#7a5cff;--ok:#22c55e;--err:#ef4444}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(1200px 600px at 10% -10%,#1d2a5a 0,transparent 60%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column;align-items:center;padding:32px 16px}
+header{display:flex;align-items:center;gap:10px;margin-bottom:28px}.logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:grid;place-items:center;font-weight:800}
+h1{font-size:22px;margin:0}header small{color:var(--muted);display:block;font-size:12px}
+.wrap{width:100%;max-width:980px;display:grid;grid-template-columns:1fr 1fr;gap:20px}@media(max-width:760px){.wrap{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px}.card h2{margin:0 0 4px;font-size:18px}.card p.sub{margin:0 0 18px;color:var(--muted);font-size:13px}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:36px 16px;text-align:center;cursor:pointer;transition:.15s}.drop:hover,.drop.over{border-color:var(--accent);background:#4f7cff10}
+.drop b{display:block;font-size:16px;margin-bottom:4px}.drop span{color:var(--muted);font-size:13px}
+button{border:0;border-radius:10px;padding:12px 18px;font-weight:600;font-size:15px;cursor:pointer;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));width:100%;margin-top:14px}button:disabled{opacity:.45;cursor:not-allowed}
+.list{margin-top:12px;max-height:180px;overflow:auto}.item{display:flex;justify-content:space-between;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line);font-size:13px}.item span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.item span:last-child{color:var(--muted);flex:none}
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:16px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
+.stat{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin-top:6px}
+.code{font:700 40px/1 ui-monospace,Consolas,monospace;letter-spacing:8px;text-align:center;padding:18px;border-radius:12px;background:#0b1020;border:1px solid var(--line);margin-top:16px}
+.share{display:flex;gap:8px;margin-top:10px}.share input{flex:1}.share button{width:auto;margin:0;padding:10px 14px}
+input{width:100%;background:#0b1020;border:1px solid var(--line);border-radius:10px;padding:12px;color:var(--text);font-size:15px}
+#codeIn{font:700 26px ui-monospace,Consolas,monospace;letter-spacing:6px;text-align:center;text-transform:uppercase}
+.msg{margin-top:12px;font-size:13px}.msg.err{color:var(--err)}.msg.ok{color:var(--ok)}
+.dl{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px;border:1px solid var(--line);border-radius:10px;margin-top:8px;font-size:13px}.dl a{color:#fff;background:var(--accent);padding:6px 12px;border-radius:8px;text-decoration:none;flex:none}
+.hidden{display:none}footer{margin-top:28px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+<header><div class="logo">S</div><div><h1>SendAnywhere LAN</h1><small>Fast local network file transfer</small></div></header>
+<div class="wrap">
+  <section class="card">
+    <h2>Send</h2><p class="sub">Choose files, get a 6-character code, share it.</p>
+    <div id="drop" class="drop"><b>Drop files here</b><span>or click to browse — any size</span><input id="pick" type="file" multiple hidden></div>
+    <div id="list" class="list"></div>
+    <button id="sendBtn" disabled>Send</button>
+    <div id="prog" class="hidden"><div class="bar"><i id="barI"></i></div><div class="stat"><span id="pct">0%</span><span id="speed"></span></div></div>
+    <div id="result" class="hidden">
+      <div class="code" id="codeOut"></div>
+      <div class="share"><input id="linkOut" readonly><button id="copyBtn">Copy</button></div>
+      <p class="sub" style="margin-top:10px">Valid for 24 hours.</p>
+    </div>
+    <div id="sendMsg" class="msg"></div>
+  </section>
+  <section class="card">
+    <h2>Receive</h2><p class="sub">Enter the code shown on the sender's screen.</p>
+    <input id="codeIn" maxlength="6" placeholder="ABC123" autocomplete="off">
+    <button id="recvBtn">Get files</button>
+    <div id="recvMsg" class="msg"></div>
+    <div id="files"></div>
+  </section>
+</div>
+<footer>Files are stored only on this server and deleted after 24 hours.</footer>
+<script>
+const API='api/transfer.ashx', CHUNK=8*1024*1024, PARALLEL=4;
+const $=id=>document.getElementById(id);
+const fmt=b=>{const u=['B','KB','MB','GB','TB'];let i=0;while(b>=1024&&i<4){b/=1024;i++}return b.toFixed(i?1:0)+' '+u[i]};
+let files=[];
+const drop=$('drop'),pick=$('pick');
+drop.onclick=()=>pick.click();
+pick.onchange=()=>setFiles(pick.files);
+['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over')}));
+['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',ev=>setFiles(ev.dataTransfer.files));
+function setFiles(fl){files=[...fl];$('list').innerHTML=files.map(f=>`<div class="item"><span>${esc(f.name)}</span><span>${fmt(f.size)}</span></div>`).join('');$('sendBtn').disabled=!files.length;$('result').classList.add('hidden');$('sendMsg').textContent=''}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+async function j(url,opt){const r=await fetch(url,opt);const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||r.statusText);return d}
+$('sendBtn').onclick=async()=>{
+  const btn=$('sendBtn');btn.disabled=true;$('sendMsg').className='msg';$('sendMsg').textContent='';$('prog').classList.remove('hidden');
+  try{
+    const {code}=await j(API+'?action=init',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({files:files.map(f=>({name:f.name,size:f.size,type:f.type}))})});
+    const jobs=[];files.forEach((f,i)=>{for(let o=0;o<f.size;o+=CHUNK)jobs.push({i,o,blob:f.slice(o,o+CHUNK)})});
+    const total=files.reduce((a,f)=>a+f.size,0)||1;let done=0;const t0=performance.now();
+    const tick=()=>{const p=Math.min(100,done/total*100);$('barI').style.width=p+'%';$('pct').textContent=p.toFixed(1)+'%';const s=done/((performance.now()-t0)/1000);$('speed').textContent=fmt(s)+'/s'};
+    let next=0;
+    const worker=async()=>{while(next<jobs.length){const jb=jobs[next++];
+      for(let tries=0;;tries++){try{await j(`${API}?action=chunk&code=${code}&file=${jb.i}&offset=${jb.o}`,{method:'PUT',body:jb.blob});break}catch(e){if(tries>=3)throw e;await new Promise(r=>setTimeout(r,500*(tries+1)))}}
+      done+=jb.blob.size;tick()}};
+    await Promise.all(Array.from({length:PARALLEL},worker));
+    await j(`${API}?action=complete&code=${code}`,{method:'POST'});
+    done=total;tick();
+    $('codeOut').textContent=code;$('linkOut').value=location.origin+location.pathname.replace(/index\.html$/,'')+'?code='+code;$('result').classList.remove('hidden');
+    $('sendMsg').className='msg ok';$('sendMsg').textContent='Upload complete.';
+  }catch(e){$('sendMsg').className='msg err';$('sendMsg').textContent='Error: '+e.message}
+  btn.disabled=false;
+};
+$('copyBtn').onclick=()=>{const v=$('linkOut');v.select();(navigator.clipboard?navigator.clipboard.writeText(v.value):Promise.reject()).catch(()=>document.execCommand('copy'));$('copyBtn').textContent='Copied';setTimeout(()=>$('copyBtn').textContent='Copy',1500)};
+async function receive(){
+  const code=$('codeIn').value.trim().toUpperCase();$('files').innerHTML='';$('recvMsg').className='msg';$('recvMsg').textContent='';
+  if(code.length!==6){$('recvMsg').className='msg err';$('recvMsg').textContent='Enter a 6-character code.';return}
+  try{const d=await j(`${API}?action=info&code=${code}`);
+    $('files').innerHTML=d.files.map((f,i)=>`<div class="dl"><span>${esc(f.name)} <small style="color:var(--muted)">${fmt(f.size)}</small></span><a href="${API}?action=download&code=${code}&file=${i}">Download</a></div>`).join('')+(d.files.length>1?`<button id="allBtn">Download all</button>`:'');
+    const all=$('allBtn');if(all)all.onclick=()=>d.files.forEach((f,i)=>setTimeout(()=>{const a=document.createElement('a');a.href=`${API}?action=download&code=${code}&file=${i}`;a.download='';document.body.appendChild(a);a.click();a.remove()},i*400));
+  }catch(e){$('recvMsg').className='msg err';$('recvMsg').textContent=e.message}
+}
+$('recvBtn').onclick=receive;$('codeIn').onkeydown=e=>{if(e.key==='Enter')receive()};
+const qc=new URLSearchParams(location.search).get('code');if(qc){$('codeIn').value=qc;receive()}
+</script>
+</body>
+</html>
