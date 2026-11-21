@@ -16,7 +16,7 @@ using System.Web.Script.Serialization;
 //   App_Data\boxes\<6-digit code>\meta.json + <fileId>.bin   (quick sends and user folders)
 //   App_Data\accounts\users.json, settings.json, secret.key
 // Quick sends and user files live at most 60 minutes (admin can change the user limit; admin's own files can live longer).
-// Every file is scanned with Microsoft Defender; only files with a detected threat are blocked.
+// Every file is scanned with Microsoft Defender for information only; downloads are never blocked.
 public class TransferHandler : IHttpHandler
 {
     const long MaxFileSize = 50L * 1024 * 1024 * 1024;   // 50 GB per file
@@ -360,12 +360,12 @@ public class TransferHandler : IHttpHandler
                         bool remove = boxExpired || DateTime.UtcNow > f.expires
                             || (!f.complete && DateTime.UtcNow - f.uploaded > TimeSpan.FromHours(6))
                             || (f.deleteAfterDownload && f.downloadedAt.HasValue && DateTime.UtcNow - f.downloadedAt.Value > TimeSpan.FromSeconds(30));
-                        if (!remove && f.scan != "threat") continue;
+                        if (!remove) continue;
                         var p = Path.Combine(d, f.id + ".bin");
                         try { if (File.Exists(p)) File.Delete(p); } catch { continue; }   // still being downloaded: retry next minute
                         if (remove) { b.files.Remove(f); changed = true; }
                     }
-                    if (b.kind == "send" && (boxExpired || b.files.Count == 0 || b.files.All(f => f.scan == "threat"))) { Directory.Delete(d, true); continue; }
+                    if (b.kind == "send" && (boxExpired || b.files.Count == 0)) { Directory.Delete(d, true); continue; }
                     if (changed) WriteJson(mf, b);
                 }
             }
@@ -506,7 +506,7 @@ public class TransferHandler : IHttpHandler
         {
             b.code, b.kind, name = b.name, owner = b.ownerUser, locked = b.pinHash != null,
             expires = b.expires.HasValue ? b.expires.Value.ToString("o") : null,
-            files = b.files.Where(f => f.complete && (Live(f) || f.scan == "threat")).Select(PublicFile)
+            files = b.files.Where(Live).Select(PublicFile)
         });
     }
 
@@ -517,8 +517,6 @@ public class TransferHandler : IHttpHandler
         if (!int.TryParse(c.Request["file"], out id)) throw Err(404, "File not found");
         var f = b.files.FirstOrDefault(x => x.id == id);
         if (f == null || !Live(f)) throw Err(410, "This file was already downloaded or has expired.");
-        if (f.scan == "threat") throw Err(403, "Blocked: Microsoft Defender detected a threat in this file.");
-        if (f.scan == "pending" || f.scan == "scanning") throw Err(409, "Security scan still running, please wait.");
         var path = FilePath(b.code, id);
         if (!File.Exists(path)) throw Err(410, "File was removed.");
         Update(b.code, bx => { var x = bx.files.FirstOrDefault(y => y.id == id); if (x != null) { x.downloads++; if (x.deleteAfterDownload) x.downloadedAt = DateTime.UtcNow; } });
@@ -831,7 +829,7 @@ public class TransferHandler : IHttpHandler
             SetScan(code, id, "scanning", null);
             try
             {
-                if (!File.Exists(path)) { SetScan(code, id, "threat", "Removed by antivirus real-time protection"); continue; }
+                if (!File.Exists(path)) { SetScan(code, id, "skipped", "File not found for scanning"); continue; }
                 var psi = new ProcessStartInfo(exe, "-Scan -ScanType 3 -DisableRemediation -File \"" + path + "\"")
                 { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
                 using (var p = Process.Start(psi))
@@ -841,9 +839,8 @@ public class TransferHandler : IHttpHandler
                     if (!p.WaitForExit((int)ScanTimeout.TotalMilliseconds)) { try { p.Kill(); } catch { } SetScan(code, id, "skipped", "Scan timed out"); continue; }
                     var output = outTask.Result;
                     if (p.ExitCode == 0) SetScan(code, id, "clean", "Microsoft Defender: no threats found");
-                    else if (p.ExitCode == 2 || output.IndexOf("Threat", StringComparison.OrdinalIgnoreCase) >= 0 && output.IndexOf("found no threats", StringComparison.OrdinalIgnoreCase) < 0)
+                    else if (p.ExitCode == 2 && output.IndexOf("no threats", StringComparison.OrdinalIgnoreCase) < 0 && output.IndexOf("Threat", StringComparison.OrdinalIgnoreCase) >= 0)
                     {
-                        try { File.Delete(path); } catch { }
                         var line = output.Split('\n').FirstOrDefault(l => l.IndexOf("Threat", StringComparison.OrdinalIgnoreCase) >= 0);
                         SetScan(code, id, "threat", (line ?? "Threat detected").Trim());
                     }
@@ -852,8 +849,7 @@ public class TransferHandler : IHttpHandler
             }
             catch (Exception ex)
             {
-                if (!File.Exists(path)) SetScan(code, id, "threat", "Removed by antivirus real-time protection");
-                else SetScan(code, id, "skipped", "Scan could not run: " + ex.Message);
+                SetScan(code, id, "skipped", "Scan could not run: " + ex.Message);
             }
         }
     }

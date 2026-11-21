@@ -20,7 +20,7 @@ Right-click **setup-safe.bat** → Run as administrator (pure batch, no PowerShe
 
 ## Security
 - Only private-network clients (10.x, 172.16-31.x, 192.168.x, localhost) can use the API; internet IPs get 403.
-- Every uploaded file is scanned by Microsoft Defender (MpCmdRun) in the background. Only files with a detected threat are deleted and blocked; clean files download normally. If Defender is missing, files show "Not scanned" and still work.
+- Every uploaded file is scanned by Microsoft Defender (MpCmdRun) in the background. Results are shown as badges only; no file is ever blocked or deleted because of the scan. If Defender is missing, files show "Not scanned" and still work.
 - Executables and scripts get an "Executable" warning badge, but they are not blocked.
 - Downloads are always sent as attachments, and security headers are set. Nothing loads from the internet, so the app works fully offline.
 
@@ -30,7 +30,7 @@ Right-click **setup-safe.bat** → Run as administrator (pure batch, no PowerShe
 - **Accounts (no SQL)**: sign up / log in / change password / reset password with a recovery key. The admin can also reset any user's password.
 - **Password folders**: logged-in users create folders with a password. Anyone with the 6-digit folder ID and the password can download the files. Each file is deleted when its timer ends (max 1 hour for users).
 - **Admin panel**: the first admin is created on the server PC (http://localhost). The admin can set the user time limit, turn sign-ups on or off, manage users and see disk usage. Admins can keep their own files for minutes, hours, days or years.
-- Microsoft Defender scan with live status (only infected files are blocked), PIN for quick sends, brute-force lockout, dark/light theme, mobile layout, fully offline.
+- Microsoft Defender scan with live status (information only — downloads are never blocked), PIN for quick sends, brute-force lockout, dark/light theme, mobile layout, fully offline.
 
 All data is stored in `iis-app\App_Data` (users and settings are JSON files; uploads are in `boxes`). A background job runs every minute and deletes expired files.
 

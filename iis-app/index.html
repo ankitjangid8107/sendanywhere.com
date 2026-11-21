@@ -250,7 +250,7 @@ select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,t
   <section class="features">
     <div class="feat"><span class="e">⚡</span><b>Full LAN speed</b><p>8 MB chunks uploaded 6 at a time to use all your bandwidth.</p></div>
     <div class="feat"><span class="e">⏱</span><b>Auto-delete</b><p>Files are removed from the server after your timer (max 1 hour) or right after download.</p></div>
-    <div class="feat"><span class="e">🛡️</span><b>Virus scanned</b><p>Every file is checked by Microsoft Defender. Only infected files are blocked.</p></div>
+    <div class="feat"><span class="e">🛡️</span><b>Virus scanned</b><p>Every file is checked by Microsoft Defender and the result is shown. Downloads are never blocked.</p></div>
     <div class="feat"><span class="e">📁</span><b>Password folders</b><p>Sign up, create folders with a password and share them by 6-digit ID.</p></div>
   </section>
   </div>
@@ -559,7 +559,7 @@ $('cancelBtn').onclick=()=>ctrl&&ctrl.abort();
 $('copyBtn').onclick=()=>copy($('linkOut').value);
 $('codeOut').onclick=()=>copy($('codeOut').textContent);
 window.addEventListener('beforeunload',e=>{if(busy||up){e.preventDefault();e.returnValue=''}});
-const SCAN={pending:'Waiting for scan',scanning:'Scanning…',clean:'✓ Virus-free',threat:'⚠ Threat blocked',skipped:'Not scanned'};
+const SCAN={pending:'Scan queued',scanning:'Scanning…',clean:'✓ Virus-free',threat:'⚠ Defender warning',skipped:'Not scanned'};
 const badge=f=>`<span class="sb ${f.scan}" title="${esc(f.scanDetail||'')}">${SCAN[f.scan]||esc(f.scan)}</span>${f.risky&&f.scan!=='threat'?'<span class="sb risky" title="Programs and scripts can harm your PC. Only open if you trust the sender.">Executable</span>':''}`;
 const scanning=d=>(d.files||[]).some(f=>f.scan==='pending'||f.scan==='scanning');
 function watchSend(code,owner,d){const box=$('sendScan');clearTimeout(box._t);if(!current||current.code!==code)return;
@@ -600,11 +600,11 @@ $('recvBtn').onclick=receive;
 $('pinGo').onclick=()=>{recvPin=$('pinRecv').value;receive()};
 $('pinRecv').onkeydown=e=>{if(e.key==='Enter')$('pinGo').click()};
 function drawRecv(code,d){if(lastCode!==code)return;
-  const ok=f=>f.scan==='clean'||f.scan==='skipped',ready=d.files.filter(ok),tot=d.files.reduce((a,f)=>a+f.size,0);
+  const ok=f=>true,ready=d.files,tot=d.files.reduce((a,f)=>a+f.size,0);
   $('recvHead').innerHTML=d.kind==='folder'?`<div class="item" style="margin-top:12px"><span class="ext">📁</span><div class="nm"><div>${esc(d.name)}</div><small>Shared folder by ${esc(d.owner)} · ${d.files.length} file(s) · ${fmt(tot)}</small></div></div>`:'';
   if(!d.files.length){$('files').innerHTML='<div class="empty">No files right now. Files appear here when the owner uploads them.</div>';msg('recvMsg');return}
   msg('recvMsg',`✓ ${d.files.length} file(s) · ${fmt(tot)}`,'ok');
-  $('files').innerHTML=d.files.map(f=>`<div class="dl"><span class="ext">${esc(ext(f.name))}</span><div class="nm"><div>${esc(f.name)}</div><small>${fmt(f.size)} · deletes in ${tm(f.expires)}${f.deleteAfterDownload?' · one-time download':''}</small> ${badge(f)}</div>${f.scan==='threat'?'':`<a class="btn${ok(f)?'':' off'}" data-id="${f.id}" href="${API}?action=download&code=${code}&file=${f.id}${pinq()}${akq()}">${ok(f)?'Download':'Scanning…'}</a>`}</div>`).join('')
+  $('files').innerHTML=d.files.map(f=>`<div class="dl"><span class="ext">${esc(ext(f.name))}</span><div class="nm"><div>${esc(f.name)}</div><small>${fmt(f.size)} · deletes in ${tm(f.expires)}${f.deleteAfterDownload?' · one-time download':''}</small> ${badge(f)}</div><a class="btn" data-id="${f.id}" href="${API}?action=download&code=${code}&file=${f.id}${pinq()}${akq()}">Download</a></div>`).join('')
     +(ready.length>1?`<button class="btn" id="allBtn" style="width:100%;margin-top:12px">Download all (${ready.length})</button>`:'');
   const all=$('allBtn');if(all)all.onclick=()=>ready.forEach((f,i)=>setTimeout(()=>{const a=document.createElement('a');a.href=`${API}?action=download&code=${code}&file=${f.id}${pinq()}${akq()}`;a.download='';document.body.appendChild(a);a.click();a.remove()},i*700));
   clearTimeout(drawRecv._t);if(scanning(d))drawRecv._t=setTimeout(async()=>{try{drawRecv(code,await api('info',{q:`&code=${code}${pinq()}`}))}catch{}},1500)}
