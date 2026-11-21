@@ -123,42 +123,98 @@ select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,t
  .dl{flex-wrap:wrap}.dl .btn{width:100%}.features{gap:10px}.feat{padding:14px}nav .container{height:58px}.brand{font-size:15px}.drop{padding:28px 12px}}
 @media (prefers-reduced-motion:reduce){*,*:before{animation:none!important;transition:none!important}}
 </style>
+
+<style>
+.tabs{display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin:0 auto 18px;width:max-content;max-width:100%;overflow-x:auto}
+.tab{border:0;background:none;color:var(--muted);font-weight:650;font-size:14px;padding:9px 16px;border-radius:10px;cursor:pointer;white-space:nowrap}
+.tab.on{background:linear-gradient(135deg,var(--a),var(--b));color:#fff}
+.view{display:none;margin-bottom:34px}.view.on{display:block;animation:rise .35s ease both}
+.modal{position:fixed;inset:0;z-index:40;background:rgba(5,8,20,.55);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px}
+.modal.on{display:flex}.modal .card{width:100%;max-width:420px;max-height:92vh;overflow:auto}
+.modal .close{float:right;background:none;border:0;color:var(--muted);font-size:22px;cursor:pointer}
+.field{margin-top:12px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.seg{display:flex;gap:4px;background:rgba(127,127,127,.08);border-radius:12px;padding:4px;margin:10px 0 4px}.seg button{flex:1;border:0;background:none;padding:8px;border-radius:9px;color:var(--muted);font-weight:650;cursor:pointer}.seg button.on{background:var(--card);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.keybox{font:700 20px ui-monospace,Consolas,monospace;letter-spacing:2px;text-align:center;padding:14px;border-radius:12px;border:1px dashed var(--a);margin:12px 0;user-select:all}
+.acct{display:inline-flex;align-items:center;gap:8px}
+.avatar{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:13px;color:#fff;background:linear-gradient(135deg,var(--a),var(--b))}
+.menu{position:absolute;right:16px;top:60px;min-width:220px;z-index:30;display:none}.menu.on{display:block}
+.menu .card{padding:8px}.menu button{display:block;width:100%;text-align:left;border:0;background:none;color:var(--text);padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14px}.menu button:hover{background:rgba(127,127,127,.1)}
+.menu .who{padding:10px 12px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line);margin-bottom:4px}
+.fgrid{display:grid;gap:16px}
+.folder .top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.folder h3{margin:0;font-size:17px;display:flex;align-items:center;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(91,124,255,.12);color:var(--a);cursor:pointer;border:0}
+.tools{display:flex;flex-wrap:wrap;gap:8px}.tools .btn{padding:8px 12px;font-size:13px;border-radius:10px}
+.ftable{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}.ftable td{padding:9px 6px;border-top:1px solid var(--line);vertical-align:middle}
+.ftable td.n{max-width:0;width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.ftable td.r{text-align:right;white-space:nowrap}
+.ftable .muted,.muted{color:var(--muted)}
+.empty{padding:22px;text-align:center;color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:12px;margin-top:12px}
+.timer{font-variant-numeric:tabular-nums;font-weight:700}.timer.low{color:var(--err)}
+.statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.stat{padding:16px;border-radius:16px;background:var(--card);border:1px solid var(--line)}.stat small{color:var(--muted);font-size:12px}.stat b{display:block;font-size:22px;margin-top:4px}
+@media(max-width:760px){.statgrid{grid-template-columns:repeat(2,1fr)}}
+.inline{display:flex;gap:8px;align-items:center}.inline>*{flex:1}
+.tray{position:fixed;right:16px;bottom:16px;width:min(360px,calc(100% - 32px));z-index:35}
+.tray .card{padding:16px}
+.switch{display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;margin-top:12px;user-select:none}.switch input{width:18px;height:18px;accent-color:var(--a)}
+.banner{padding:12px 14px;border-radius:12px;background:rgba(234,179,8,.12);color:#b98b00;font-size:13px;margin-bottom:16px;border:1px solid rgba(234,179,8,.3)}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 14px}.section-title h2{margin:0;font-size:22px}
+@media(max-width:560px){.ftable td.hide-sm{display:none}.section-title{flex-wrap:wrap}.tab{padding:8px 12px;font-size:13px}}
+</style>
+
 </head>
 <body>
-<nav><div class="container">
+<nav><div class="container" style="position:relative">
   <a class="brand" href="./"><span class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg></span>SendAnywhere <span class="grad">LAN</span></a>
   <div class="navlinks">
     <a class="pill ai hide-sm" href="https://tvc0.lovable.app" target="_blank" rel="noopener">✨ AI Tool</a>
     <a class="pill ai hide-sm" href="https://tvc0.pro" target="_blank" rel="noopener">🚀 AI Tool Pro</a>
     <a class="pill wa hide-sm" href="https://whatsapp.com/channel/0029VbC2DdxJUM2bvG9gBy29" target="_blank" rel="noopener">WhatsApp</a>
     <button class="pill" id="themeBtn" title="Toggle theme">🌓</button>
+    <button class="pill" id="acctBtn">Login</button>
   </div>
+  <div class="menu" id="acctMenu"><div class="card">
+    <div class="who" id="menuWho"></div>
+    <button data-go="folders">📁 My folders</button>
+    <button data-go="admin" class="adminOnly hidden">🛠️ Admin panel</button>
+    <button id="chgPwBtn">🔑 Change password</button>
+    <button id="logoutBtn">↩ Log out</button>
+  </div></div>
 </div></nav>
 
 <main class="container">
   <section class="hero">
     <span class="badge"><span class="dot"></span> <span id="srvStatus">Running on your local network</span></span>
     <h1>Send files <span class="grad">superfast</span><br>across your network</h1>
-    <p>Share files up to 50 GB between any devices on the same Wi-Fi or LAN. No sign-up, no internet, no limits.</p>
-    <div class="chips"><span>⚡ Parallel chunk upload</span><span>📦 Up to 50 GB per file</span><span>🔁 Auto-retry</span><span>🔒 Stays on your network</span><span>🛡️ Windows Defender scan</span><span>📶 Works offline</span></div>
+    <p>Share files up to 50 GB on the same Wi-Fi or LAN. Files are deleted automatically after the time you choose (max 1 hour).</p>
+    <div class="chips"><span>⚡ Parallel chunk upload</span><span>🔢 6-digit codes</span><span>🛡️ Windows Defender scan</span><span>⏱ Auto-delete ≤ 1 hour</span><span>📁 Password folders</span><span>📶 Works offline</span></div>
   </section>
 
+  <div id="adminBanner" class="banner hidden"></div>
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-v="home">⇅ Send &amp; Receive</button>
+    <button class="tab" data-v="folders">📁 My Folders</button>
+    <button class="tab adminOnly hidden" data-v="admin">🛠️ Admin</button>
+  </div>
+
+  <!-- ============ SEND & RECEIVE ============ -->
+  <div class="view on" id="v-home">
   <div class="grid">
     <section class="card">
       <h2><span class="ic">⬆</span>Send files</h2>
-      <p class="sub">Add files, press Send, then share the 6-character code.</p>
+      <p class="sub">Add files, press Send, then share the 6-digit code.</p>
       <div id="drop" class="drop">
         <div class="up"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m6 10 6-6 6 6"/><path d="M4 20h16"/></svg></div>
         <b>Drag &amp; drop files here</b><span>or click to browse · multiple files · up to 50 GB each</span>
         <input id="pick" type="file" multiple hidden>
       </div>
+      <div class="addrow"><button class="btn ghost" id="addFilesBtn">＋ Add files</button><button class="btn ghost" id="addFolderBtn">📁 Add folder</button><input id="pickDir" type="file" webkitdirectory multiple hidden></div>
       <div id="list" class="list"></div>
       <div id="summary" class="summary hidden"><span id="sumCount"></span><a href="#" id="clearBtn">Clear all</a></div>
-      <div class="addrow"><button class="btn ghost" id="addFilesBtn">＋ Add files</button><button class="btn ghost" id="addFolderBtn">📁 Add folder</button><input id="pickDir" type="file" webkitdirectory multiple hidden></div>
       <div class="opts">
-        <div><label for="expSel">Expires after</label><select class="f" id="expSel"><option value="1">1 hour</option><option value="6">6 hours</option><option value="24" selected>24 hours</option><option value="72">3 days</option></select></div>
+        <div><label for="expSel">Delete files after</label><select class="f expSel" id="expSel"></select></div>
         <div><label for="pinIn">PIN protection (optional)</label><input class="f" id="pinIn" type="password" maxlength="32" placeholder="4+ characters" autocomplete="new-password"></div>
       </div>
+      <label class="switch"><input type="checkbox" id="dadChk" checked> Delete each file as soon as it is downloaded</label>
       <div class="row"><button class="btn" id="sendBtn" disabled>Send files</button><button class="btn danger hidden" id="cancelBtn">Cancel</button></div>
       <div id="prog" class="prog hidden">
         <div class="bar"><i id="barI"></i></div>
@@ -169,7 +225,7 @@ select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,t
         <div class="code" id="codeOut" title="Click to copy"></div>
         <div class="qr" id="qrOut"></div>
         <div class="share"><input class="f" id="linkOut" readonly><button class="btn" id="copyBtn">Copy link</button></div>
-        <div class="meta"><span id="expOut"></span><span id="lockOut"></span><span id="dlCount"></span></div>
+        <div class="meta"><span>⏱ Deletes in <span class="timer" id="expOut"></span></span><span id="lockOut"></span><span id="dlCount"></span></div>
         <div class="row"><button class="btn ghost" id="newBtn">Send more files</button><button class="btn danger" id="stopBtn">Stop sharing</button></div>
       </div>
       <div id="sendScan" class="scanbox"></div>
@@ -178,11 +234,12 @@ select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,t
 
     <section class="card" style="animation-delay:.08s">
       <h2><span class="ic">⬇</span>Receive files</h2>
-      <p class="sub">Type the code shown on the sender's screen.</p>
+      <p class="sub">Enter the 6-digit code of a transfer or a shared folder.</p>
       <div class="otp" id="otp"></div>
       <div class="row"><button class="btn" id="recvBtn">Get files</button><button class="btn ghost" id="pasteBtn" style="flex:0 0 auto">Paste</button></div>
-      <div id="pinBox" class="lockbox hidden"><input class="f" id="pinRecv" type="password" maxlength="32" placeholder="🔒 Enter PIN"><button class="btn" id="pinGo">Unlock</button></div>
+      <div id="pinBox" class="lockbox hidden"><input class="f" id="pinRecv" type="password" maxlength="64" placeholder="🔒 PIN / folder password"><button class="btn" id="pinGo">Unlock</button></div>
       <div id="recvMsg" class="msg"></div>
+      <div id="recvHead"></div>
       <div id="files"></div>
       <div class="hist" id="histBox">
         <h3>Recent sends <button id="histClear">Clear</button></h3>
@@ -190,14 +247,56 @@ select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,t
       </div>
     </section>
   </div>
-
   <section class="features">
-    <div class="feat"><span class="e">⚡</span><b>Full LAN speed</b><p>Uploads 8 MB chunks in parallel to use all your bandwidth.</p></div>
-    <div class="feat"><span class="e">📦</span><b>50 GB files</b><p>Large files are written straight to disk, so they don't fill up memory.</p></div>
+    <div class="feat"><span class="e">⚡</span><b>Full LAN speed</b><p>8 MB chunks uploaded 6 at a time to use all your bandwidth.</p></div>
+    <div class="feat"><span class="e">⏱</span><b>Auto-delete</b><p>Files are removed from the server after your timer (max 1 hour) or right after download.</p></div>
     <div class="feat"><span class="e">🛡️</span><b>Virus scanned</b><p>Every file is checked by Microsoft Defender. Only infected files are blocked.</p></div>
-    <div class="feat"><span class="e">🧹</span><b>Auto cleanup</b><p>Transfers are deleted from the server after 24 hours.</p></div>
+    <div class="feat"><span class="e">📁</span><b>Password folders</b><p>Sign up, create folders with a password and share them by 6-digit ID.</p></div>
   </section>
+  </div>
 
+  <!-- ============ MY FOLDERS ============ -->
+  <div class="view" id="v-folders">
+    <div id="foldersLogin" class="card" style="text-align:center;max-width:520px;margin:0 auto">
+      <h2 style="justify-content:center">📁 Personal folders</h2>
+      <p class="sub" style="margin-top:8px">Log in to create password-protected folders. Anyone with the folder ID and password can download the files until they expire.</p>
+      <div class="row"><button class="btn" data-auth="login">Log in</button><button class="btn ghost" data-auth="signup">Create account</button></div>
+    </div>
+    <div id="foldersMain" class="hidden">
+      <div class="section-title"><h2>My Folders</h2><span class="muted" id="limitNote"></span></div>
+      <section class="card">
+        <h2><span class="ic">＋</span>New folder</h2>
+        <div class="opts">
+          <div><label for="nfName">Folder name</label><input class="f" id="nfName" maxlength="60" placeholder="e.g. Reports"></div>
+          <div><label for="nfPass">Folder password (for downloaders)</label><input class="f" id="nfPass" type="password" maxlength="64" placeholder="4+ characters" autocomplete="new-password"></div>
+        </div>
+        <button class="btn" id="nfBtn" style="width:100%;margin-top:12px">Create folder</button>
+        <div class="msg" id="nfMsg"></div>
+      </section>
+      <div class="fgrid" id="folderList" style="margin-top:16px"></div>
+      <input id="folderPick" type="file" multiple hidden>
+    </div>
+  </div>
+
+  <!-- ============ ADMIN ============ -->
+  <div class="view" id="v-admin">
+    <div class="section-title"><h2>Admin panel</h2><button class="btn ghost" id="admRefresh" style="padding:8px 14px">↻ Refresh</button></div>
+    <div class="statgrid" id="admStats"></div>
+    <section class="card" style="margin-top:16px">
+      <h2><span class="ic">⚙</span>Settings</h2>
+      <div class="opts">
+        <div><label>Maximum file time for users</label><div class="inline"><input class="f" id="admMaxNum" type="number" min="1" value="60"><select class="f" id="admMaxUnit"><option value="1">minutes</option><option value="60">hours</option><option value="1440">days</option><option value="525600">years</option></select></div></div>
+        <div><label>&nbsp;</label><label class="switch" style="margin:0"><input type="checkbox" id="admSignup"> Allow new users to sign up</label></div>
+      </div>
+      <p class="sub" style="margin:8px 0 0">Recommended: 60 minutes. Admin accounts can always choose any time (minutes to years) for their own files.</p>
+      <button class="btn" id="admSave" style="width:100%;margin-top:12px">Save settings</button>
+      <div class="msg" id="admMsg"></div>
+    </section>
+    <section class="card" style="margin-top:16px">
+      <h2><span class="ic">👥</span>Users</h2>
+      <table class="ftable" id="admUsers"></table>
+    </section>
+  </div>
   <section class="promo">
     <a class="pcard" href="https://tvc0.lovable.app" target="_blank" rel="noopener"><span class="pi">✨</span><span><b>AI Tool</b><small>tvc0.lovable.app</small></span></a>
     <a class="pcard" href="https://tvc0.pro" target="_blank" rel="noopener"><span class="pi">🚀</span><span><b>AI Tool Pro</b><small>tvc0.pro</small></span></a>
@@ -216,161 +315,373 @@ select.f{appearance:none;cursor:pointer;background-image:linear-gradient(45deg,t
 </div></footer>
 <div class="toast" id="toast"></div>
 
+<!-- auth -->
+<div class="modal" id="mAuth"><div class="card">
+  <button class="close" data-close>×</button>
+  <h2 id="authTitle">Welcome</h2>
+  <div class="seg" id="authSeg"><button data-m="login" class="on">Log in</button><button data-m="signup">Sign up</button><button data-m="recover">Forgot?</button></div>
+  <form id="authForm" autocomplete="on">
+    <div class="field"><label for="auUser">Username</label><input class="f" id="auUser" autocomplete="username" maxlength="32" required></div>
+    <div class="field" id="auPassF"><label for="auPass">Password</label><input class="f" id="auPass" type="password" autocomplete="current-password" maxlength="128"></div>
+    <div class="field hidden" id="auRecF"><label for="auRec">Recovery key</label><input class="f" id="auRec" placeholder="0000-0000-0000-0000" autocomplete="off"></div>
+    <div class="field hidden" id="auNewF"><label for="auNew">New password</label><input class="f" id="auNew" type="password" autocomplete="new-password" maxlength="128"></div>
+    <button class="btn" id="auBtn" style="width:100%;margin-top:16px">Log in</button>
+    <p class="sub" id="auHint" style="margin:10px 0 0"></p>
+    <div class="msg" id="auMsg"></div>
+  </form>
+</div></div>
+<!-- admin first run -->
+<div class="modal" id="mSetup"><div class="card">
+  <h2>🛠️ Create admin account</h2>
+  <p class="sub" style="margin-top:6px">First-time setup. The admin manages users and settings and can keep files for longer than 1 hour.</p>
+  <form id="setupForm">
+    <div class="field"><label for="suUser">Admin username</label><input class="f" id="suUser" value="admin" maxlength="32" autocomplete="username"></div>
+    <div class="field"><label for="suPass">Admin password</label><input class="f" id="suPass" type="password" maxlength="128" autocomplete="new-password" placeholder="6+ characters"></div>
+    <button class="btn" style="width:100%;margin-top:16px">Create admin</button>
+    <div class="msg" id="suMsg"></div>
+  </form>
+</div></div>
+<!-- recovery key -->
+<div class="modal" id="mKey"><div class="card">
+  <h2>🔐 Save your recovery key</h2>
+  <p class="sub" style="margin-top:6px">If you forget your password, this key lets you reset it. It is shown only once — write it down or copy it.</p>
+  <div class="keybox" id="keyOut"></div>
+  <div class="row"><button class="btn ghost" id="keyCopy">Copy</button><button class="btn" data-close>I saved it</button></div>
+</div></div>
+<!-- change password -->
+<div class="modal" id="mPw"><div class="card">
+  <button class="close" data-close>×</button>
+  <h2>🔑 Change password</h2>
+  <form id="pwForm">
+    <div class="field"><label for="pwOld">Current password</label><input class="f" id="pwOld" type="password" autocomplete="current-password"></div>
+    <div class="field"><label for="pwNew">New password</label><input class="f" id="pwNew" type="password" autocomplete="new-password" placeholder="6+ characters"></div>
+    <button class="btn" style="width:100%;margin-top:16px">Update password</button>
+    <div class="msg" id="pwMsg"></div>
+  </form>
+</div></div>
+<!-- generic form dialog -->
+<div class="modal" id="mAsk"><div class="card">
+  <button class="close" data-close>×</button>
+  <h2 id="askTitle"></h2>
+  <form id="askForm"><div id="askFields"></div>
+    <button class="btn" id="askBtn" style="width:100%;margin-top:16px">Save</button>
+    <div class="msg" id="askMsg"></div>
+  </form>
+</div></div>
+<!-- upload tray for folder uploads -->
+<div class="tray hidden" id="tray"><div class="card">
+  <div class="summary" style="margin:0 0 8px"><b id="trayTitle">Uploading…</b><span id="trayPct">0%</span></div>
+  <div class="bar"><i id="trayBar"></i></div>
+  <div class="summary"><span id="traySpeed"></span><a href="#" id="trayCancel">Cancel</a></div>
+</div></div>
+
 <script src="assets/qrcode.js"></script>
 <script>
+'use strict';
 const API='api/transfer.ashx',CHUNK=8*1024*1024,PARALLEL=6,MAX=50*1024**3;
 const $=id=>document.getElementById(id);
 const fmt=b=>{const u=['B','KB','MB','GB','TB'];let i=0;while(b>=1024&&i<4){b/=1024;i++}return b.toFixed(i?1:0)+' '+u[i]};
 const ftime=s=>!isFinite(s)||s<0?'—':s<60?Math.ceil(s)+'s':s<3600?Math.floor(s/60)+'m '+Math.ceil(s%60)+'s':Math.floor(s/3600)+'h '+Math.floor(s%3600/60)+'m';
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ext=n=>{const m=/\.([a-z0-9]{1,4})$/i.exec(n);return m?m[1]:'file'};
 const store={get(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
-function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),1800)}
+const baseUrl=()=>location.origin+location.pathname.replace(/index\.html$/,'');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),2200)}
 async function copy(t){try{await navigator.clipboard.writeText(t)}catch{const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}toast('Copied to clipboard')}
-$('yr').textContent=new Date().getFullYear();
+function msg(id,text,kind){const e=$(id);e.className='msg'+(kind?' '+kind:'');e.textContent=text||''}
+$('yr')&&($('yr').textContent=new Date().getFullYear());
 
-// theme
+// ---------- API ----------
+let AK=store.get('ak','');
+const akq=()=>AK?'&ak='+encodeURIComponent(AK):'';
+async function api(action,{q='',body,method}={}){
+  const opt={method:method||(body!==undefined?'POST':'GET'),headers:{'X-SA':'1'},credentials:'same-origin'};
+  if(AK)opt.headers['X-Access-Key']=AK;
+  if(body!==undefined){opt.headers['Content-Type']='application/json';opt.body=JSON.stringify(body)}
+  let r;try{r=await fetch(`${API}?action=${action}${q}`,opt)}catch{throw new Error('Cannot reach the server. Check the network connection.')}
+  const ct=r.headers.get('content-type')||'';
+  if(!ct.includes('json'))throw new Error(r.status===405?'IIS blocked the request (HTTP 405). Run setup-safe.bat as administrator.':'Server API not available (HTTP '+r.status+'). Run setup-safe.bat as administrator.');
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok){
+    if(d.error==='ACCESS_KEY'){const k=prompt('This server needs an access key:');if(k){AK=k;store.set('ak',k);return api(action,{q,body,method})}}
+    if(d.error==='LOGIN_REQUIRED'){setMe(null);openAuth('login')}
+    const e=new Error(d.error==='PIN_REQUIRED'?'PIN required':d.error==='LOGIN_REQUIRED'?'Please log in first.':(d.error||'HTTP '+r.status));e.code=d.error;e.status=r.status;throw e}
+  return d}
+
+// ---------- expiry helpers ----------
+const MIN_OPTS=[[5,'5 minutes'],[10,'10 minutes'],[15,'15 minutes'],[30,'30 minutes'],[60,'1 hour']];
+const ADMIN_OPTS=[[180,'3 hours'],[720,'12 hours'],[1440,'1 day'],[10080,'7 days'],[43200,'30 days'],[525600,'1 year']];
+function fillExp(sel,max,admin,def){const prev=+sel.value||def||60;sel.innerHTML='';
+  let opts=[...MIN_OPTS,...ADMIN_OPTS].filter(o=>admin||o[0]<=max);if(!opts.length)opts=[[max,durText(max)]];
+  if(admin)opts.push(['custom','Custom…']);
+  for(const [v,t] of opts){const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o)}
+  const has=v=>[...sel.options].some(o=>o.value===String(v));
+  sel.value=has(prev)?prev:has(60)?60:sel.options[sel.options.length-(admin?2:1)].value;
+  sel.onchange=()=>{if(sel.value==='custom'){const m=parseDur(prompt('Keep files for how long? Examples: 90m, 8h, 15d, 2y','2h'));
+    if(m){const o=document.createElement('option');o.value=m;o.textContent=durText(m);sel.insertBefore(o,sel.lastChild);sel.value=m}else sel.value=60}}}
+function parseDur(s){const m=/^\s*(\d+)\s*([mhdy]?)\s*$/i.exec(s||'');if(!m)return 0;const n=+m[1],u=(m[2]||'m').toLowerCase();return n*({m:1,h:60,d:1440,y:525600}[u])}
+function durText(m){return m%525600===0?m/525600+' year(s)':m%1440===0?m/1440+' day(s)':m%60===0?m/60+' hour(s)':m+' minutes'}
+function left(iso){const s=(new Date(iso)-Date.now())/1000;if(s<=0)return'expired';const d=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60),x=Math.floor(s%60);
+  return d?`${d}d ${h}h`:h?`${h}h ${String(m).padStart(2,'0')}m`:`${m}:${String(x).padStart(2,'0')}`}
+setInterval(()=>document.querySelectorAll('[data-exp]').forEach(e=>{e.textContent=left(e.dataset.exp);e.classList.toggle('low',(new Date(e.dataset.exp)-Date.now())<120000)}),1000);
+const tm=iso=>`<span class="timer" data-exp="${esc(iso)}">${left(iso)}</span>`;
+
+// ---------- theme ----------
 const applyTheme=t=>{document.documentElement.dataset.theme=t;store.set('theme',t)};
 applyTheme(store.get('theme',matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
 $('themeBtn').onclick=()=>applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
 
-// file selection
-let files=[],busy=false,ctrl=null;
+// ---------- views ----------
+function show(v){document.querySelectorAll('.view').forEach(e=>e.classList.toggle('on',e.id==='v-'+v));document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===v));
+  $('acctMenu').classList.remove('on');if(v==='folders')loadFolders();if(v==='admin')loadAdmin();if(history.replaceState)history.replaceState(null,'',v==='home'?location.pathname+location.search:'#'+v)}
+$('tabs').onclick=e=>{const t=e.target.closest('.tab');if(t)show(t.dataset.v)};
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
+
+// ---------- modals ----------
+const openM=id=>$(id).classList.add('on'),closeM=id=>$(id).classList.remove('on');
+document.querySelectorAll('.modal').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m&&m.id!=='mSetup'&&m.id!=='mKey')closeM(m.id);if(e.target.closest('[data-close]'))closeM(m.id)})});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.modal.on').forEach(m=>{if(m.id!=='mSetup'&&m.id!=='mKey')closeM(m.id)})});
+function showKey(k,text){$('keyOut').textContent=k;$('keyOut').previousElementSibling.textContent=text||'If you forget your password, this key lets you reset it. It is shown only once — write it down or copy it.';openM('mKey')}
+$('keyCopy').onclick=()=>copy($('keyOut').textContent);
+
+// ---------- account ----------
+let ME={user:null,admin:false,maxMinutes:60};
+function setMe(m){ME=m||{user:null,admin:false,maxMinutes:ME.maxMinutes||60,needsAdminSetup:ME.needsAdminSetup};
+  const b=$('acctBtn');b.innerHTML=ME.user?`<span class="acct"><span class="avatar">${esc(ME.user[0].toUpperCase())}</span>${esc(ME.user)}</span>`:'Login';
+  $('menuWho').textContent=ME.user?(ME.admin?'Administrator · ':'Signed in as ')+ME.user:'';
+  document.querySelectorAll('.adminOnly').forEach(e=>e.classList.toggle('hidden',!ME.admin));
+  $('foldersLogin').classList.toggle('hidden',!!ME.user);$('foldersMain').classList.toggle('hidden',!ME.user);
+  fillExp($('expSel'),ME.maxMinutes||60,ME.admin,store.get('exp',60));
+  $('limitNote').textContent=ME.admin?'Admin: files can be kept for any time':'Files are deleted automatically after max '+durText(ME.maxMinutes||60);
+  const ban=$('adminBanner');
+  if(ME.needsAdminSetup&&!ME.user){const local=/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+    if(local)openM('mSetup');else{ban.textContent='⚠ Admin account not created yet. Open http://localhost on the server PC to create it.';ban.classList.remove('hidden')}}else ban.classList.add('hidden')}
+$('acctBtn').onclick=e=>{e.stopPropagation();if(!ME.user)return openAuth('login');$('acctMenu').classList.toggle('on')};
+document.addEventListener('click',e=>{if(!e.target.closest('#acctMenu'))$('acctMenu').classList.remove('on')});
+document.querySelectorAll('[data-auth]').forEach(b=>b.onclick=()=>openAuth(b.dataset.auth));
+let authMode='login';
+function openAuth(m){authMode=m;document.querySelectorAll('#authSeg button').forEach(b=>b.classList.toggle('on',b.dataset.m===m));
+  $('authTitle').textContent={login:'Welcome back',signup:'Create your account',recover:'Reset password'}[m];
+  $('auPassF').classList.toggle('hidden',m==='recover');$('auRecF').classList.toggle('hidden',m!=='recover');$('auNewF').classList.toggle('hidden',m!=='recover');
+  $('auPass').autocomplete=m==='signup'?'new-password':'current-password';
+  $('auBtn').textContent={login:'Log in',signup:'Create account',recover:'Reset password'}[m];
+  $('auHint').textContent=m==='signup'?(ME.allowSignup===false?'New sign-ups are disabled by the admin.':'Username: 3-32 letters/numbers. Password: 6+ characters. You will get a recovery key.'):m==='recover'?'Use the recovery key you saved at sign-up. Lost it? Ask the admin to reset your password.':'';
+  msg('auMsg');openM('mAuth');setTimeout(()=>$('auUser').focus(),50)}
+$('authSeg').onclick=e=>{const b=e.target.closest('button');if(b)openAuth(b.dataset.m)};
+$('authForm').onsubmit=async e=>{e.preventDefault();const btn=$('auBtn');btn.disabled=true;
+  try{const u=$('auUser').value.trim();let d;
+    if(authMode==='login')d=await api('login',{body:{username:u,password:$('auPass').value}});
+    else if(authMode==='signup')d=await api('signup',{body:{username:u,password:$('auPass').value}});
+    else d=await api('recover',{body:{username:u,recoveryKey:$('auRec').value,newPassword:$('auNew').value}});
+    $('auPass').value=$('auNew').value=$('auRec').value='';closeM('mAuth');setMe(d.me);toast('Welcome, '+d.me.user);
+    if(d.recoveryKey)showKey(d.recoveryKey);if($('v-folders').classList.contains('on'))loadFolders()}
+  catch(er){msg('auMsg',er.message,'err')}btn.disabled=false};
+$('setupForm').onsubmit=async e=>{e.preventDefault();try{const d=await api('setup-admin',{body:{username:$('suUser').value,password:$('suPass').value}});closeM('mSetup');setMe(d.me);showKey(d.recoveryKey);toast('Admin account created')}catch(er){msg('suMsg',er.message,'err')}};
+$('logoutBtn').onclick=async()=>{try{await api('logout',{body:{}})}catch{}setMe(null);show('home');toast('Logged out')};
+$('chgPwBtn').onclick=()=>{msg('pwMsg');$('acctMenu').classList.remove('on');openM('mPw')};
+$('pwForm').onsubmit=async e=>{e.preventDefault();try{await api('change-password',{body:{password:$('pwOld').value,newPassword:$('pwNew').value}});$('pwOld').value=$('pwNew').value='';closeM('mPw');toast('Password changed')}catch(er){msg('pwMsg',er.message,'err')}};
+
+// generic dialog
+function ask(title,fields,btn,onOk){$('askTitle').textContent=title;$('askBtn').textContent=btn;msg('askMsg');
+  $('askFields').innerHTML=fields.map(f=>`<div class="field"><label for="ask_${f.k}">${esc(f.label)}</label><input class="f" id="ask_${f.k}" type="${f.type||'text'}" value="${esc(f.value||'')}" placeholder="${esc(f.ph||'')}" autocomplete="off"></div>`).join('');
+  $('askForm').onsubmit=async e=>{e.preventDefault();const v={};fields.forEach(f=>v[f.k]=$('ask_'+f.k).value);try{await onOk(v);closeM('mAsk')}catch(er){msg('askMsg',er.message,'err')}};
+  openM('mAsk');setTimeout(()=>{const i=$('askFields').querySelector('input');i&&i.focus()},50)}
+
+// ---------- upload engine ----------
+function xhrPost(url,body,onProg,signal){return new Promise((res,rej)=>{const x=new XMLHttpRequest();x.open('POST',url);x.setRequestHeader('Content-Type','application/octet-stream');if(AK)x.setRequestHeader('X-Access-Key',AK);
+  x.upload.onprogress=e=>onProg(e.loaded);x.onload=()=>{let d={};try{d=JSON.parse(x.responseText)}catch{}x.status===200&&d.ok?res(d):rej(new Error(d.error||('Upload failed (HTTP '+x.status+')')))};
+  x.onerror=()=>rej(new Error('Network error'));x.onabort=()=>rej(new Error('Cancelled'));signal.addEventListener('abort',()=>x.abort(),{once:true});x.send(body)})}
+// Uploads files after init. Returns {code, owner, fin}
+async function uploadAll(list,initBody,signal,onTick,onFile){
+  const init=await api('init',{body:Object.assign({files:list.map(f=>({name:f.name,size:f.size}))},initBody)});
+  const {code,owner,ids}=init,oq=owner?'&owner='+encodeURIComponent(owner):'';
+  const jobs=[],fdone=list.map(()=>0);
+  list.forEach((f,i)=>{if(!f.size)return;for(let o=0;o<f.size;o+=CHUNK)jobs.push({i,o,len:Math.min(CHUNK,f.size-o)})});
+  const total=list.reduce((a,f)=>a+f.size,0)||1;let done=0,next=0;const t0=performance.now();
+  const tick=()=>onTick(done,total,(performance.now()-t0)/1000);
+  const worker=async()=>{while(next<jobs.length){const jb=jobs[next++],f=list[jb.i];
+    for(let t=0;;t++){let sent=0;
+      try{await xhrPost(`${API}?action=chunk&code=${code}${oq}&file=${ids[jb.i]}&offset=${jb.o}${akq()}`,f.slice(jb.o,jb.o+jb.len),n=>{done+=n-sent;fdone[jb.i]+=n-sent;sent=n;onFile&&onFile(jb.i,fdone[jb.i]/f.size);tick()},signal);
+        done+=jb.len-sent;fdone[jb.i]+=jb.len-sent;break}
+      catch(e){done-=sent;fdone[jb.i]-=sent;if(signal.aborted||t>=4)throw e;await sleep(600*(t+1))}}
+    onFile&&onFile(jb.i,fdone[jb.i]/f.size);tick()}};
+  await Promise.all(Array.from({length:Math.min(PARALLEL,jobs.length||1)},worker));
+  const fin=await api('complete',{q:`&code=${code}${oq}`,body:{ids}});
+  onTick(total,total,(performance.now()-t0)/1000);
+  return {code,owner,fin,expires:init.expires}}
+async function lockWake(on){try{if(on&&'wakeLock'in navigator)window._wl=await navigator.wakeLock.request('screen');else if(window._wl){await window._wl.release();window._wl=null}}catch{}}
+const baseTitle=document.title;
+
+// ---------- quick send ----------
+let files=[],busy=false,ctrl=null,current=null;
 const drop=$('drop'),pick=$('pick');
 drop.onclick=()=>!busy&&pick.click();
 pick.onchange=()=>{addFiles(pick.files);pick.value=''};
 ['dragenter','dragover'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.add('over')}));
 ['dragleave','drop'].forEach(e=>drop.addEventListener(e,ev=>{ev.preventDefault();drop.classList.remove('over')}));
 drop.addEventListener('drop',ev=>!busy&&addFiles(ev.dataTransfer.files));
-document.addEventListener('paste',ev=>{if(!busy&&ev.clipboardData.files.length&&document.activeElement.tagName!=='INPUT')addFiles(ev.clipboardData.files)});
-function addFiles(fl){
-  for(const f of fl){if(f.size>MAX){toast(f.name+' is over 50 GB');continue}
-    if(!files.some(x=>x.name===f.name&&x.size===f.size))files.push(f)}
-  render();$('result').classList.add('hidden');$('sendMsg').textContent='';
-}
+document.addEventListener('paste',ev=>{if(!busy&&ev.clipboardData.files.length&&document.activeElement.tagName!=='INPUT'&&$('v-home').classList.contains('on'))addFiles(ev.clipboardData.files)});
+$('addFilesBtn').onclick=()=>!busy&&pick.click();
+$('addFolderBtn').onclick=()=>!busy&&$('pickDir').click();
+$('pickDir').onchange=()=>{addFiles($('pickDir').files);$('pickDir').value=''};
+function addFiles(fl){for(const f of fl){if(f.size>MAX){toast(f.name+' is over 50 GB');continue}if(!files.some(x=>x.name===f.name&&x.size===f.size))files.push(f)}
+  if(files.length>500){files=files.slice(0,500);toast('Maximum 500 files per transfer')}render();$('sendMsg').textContent=''}
 function render(){
   $('list').innerHTML=files.map((f,i)=>`<div class="item"><span class="ext">${esc(ext(f.name))}</span><div class="nm"><div>${esc(f.name)}</div><small>${fmt(f.size)}</small><div class="mini"><i id="fp${i}"></i></div></div>${busy?'':`<button class="x" data-i="${i}" title="Remove">×</button>`}</div>`).join('');
   const tot=files.reduce((a,f)=>a+f.size,0);
   $('summary').classList.toggle('hidden',!files.length);$('sumCount').textContent=`${files.length} file${files.length>1?'s':''} · ${fmt(tot)}`;
-  $('sendBtn').disabled=!files.length||busy;
-}
+  $('sendBtn').disabled=!files.length||busy}
 $('list').onclick=e=>{const b=e.target.closest('.x');if(b){files.splice(+b.dataset.i,1);render()}};
 $('clearBtn').onclick=e=>{e.preventDefault();if(!busy){files=[];render()}};
-
-let AK=store.get('ak','');const akq=()=>AK?'&ak='+encodeURIComponent(AK):'';
-async function j(url,opt={}){if(AK){opt.headers=Object.assign({},opt.headers,{'X-Access-Key':AK})}const r=await fetch(url,opt);
-  if(r.status===401){const d=await r.clone().json().catch(()=>({}));if(d.error==='ACCESS_KEY'){const k=prompt('This server needs an access key (internet access):');if(k){AK=k;store.set('ak',k);return j(url,opt)}throw new Error('Access key required')}
-    if(d.error==='PIN_REQUIRED'){const e=new Error('PIN_REQUIRED');e.pin=true;throw e}}const ct=r.headers.get('content-type')||'';const step=(/action=(\w+)/.exec(url)||[])[1]||'';
-  if(!ct.includes('json')){let hint='IIS did not run the upload API.';if(r.status===405)hint='IIS blocked the request (HTTP 405) — run setup-safe.bat as administrator.';else if(r.status===404||r.status===500)hint='ASP.NET handler not available (HTTP '+r.status+') — run setup-safe.bat as administrator.';throw new Error(hint+' [step: '+step+']')}
-  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error((d.error||('HTTP '+r.status))+' [step: '+step+']');return d}
-
-// send
+$('expSel').addEventListener('change',()=>store.set('exp',+$('expSel').value||60));
 $('sendBtn').onclick=async()=>{
-  busy=true;ctrl=new AbortController();render();lockWake(true);$('sendScan').innerHTML='';clearTimeout($('sendScan')._t);
-  $('cancelBtn').classList.remove('hidden');$('sendMsg').className='msg';$('sendMsg').textContent='';$('prog').classList.remove('hidden');$('result').classList.add('hidden');
+  busy=true;ctrl=new AbortController();render();lockWake(true);
+  $('result').classList.add('hidden');$('sendScan').innerHTML='';clearTimeout($('sendScan')._t);
+  $('cancelBtn').classList.remove('hidden');msg('sendMsg');$('prog').classList.remove('hidden');
   $('barI').style.width='0';$('pct').textContent='0%';$('speed').textContent='—';$('eta').textContent='—';
+  const list=files.slice();
   try{
-    const {code,owner}=await j(API+'?action=init',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({hours:+$('expSel').value,pin:$('pinIn').value,files:files.map(f=>({name:f.name,size:f.size,type:f.type||'application/octet-stream'}))}),signal:ctrl.signal});
-    const jobs=[],fdone=files.map(()=>0);
-    files.forEach((f,i)=>{for(let o=0;o<f.size;o+=CHUNK)jobs.push({i,o,len:Math.min(CHUNK,f.size-o)})});
-    const total=files.reduce((a,f)=>a+f.size,0)||1;let done=0,next=0;const t0=performance.now();
-    const tick=()=>{const p=Math.min(100,done/total*100);$('barI').style.width=p+'%';$('pct').textContent=p.toFixed(1)+'%';document.title=Math.floor(p)+'% · '+baseTitle;
-      const el=(performance.now()-t0)/1000,s=done/el;if(el>.3){$('speed').textContent=fmt(s)+'/s';$('eta').textContent=ftime((total-done)/s)}};
-    const worker=async()=>{while(next<jobs.length){const jb=jobs[next++],f=files[jb.i];
-      for(let t=0;;t++){let sent=0;
-        try{await xhrPost(`${API}?action=chunk&code=${code}&owner=${owner}&file=${jb.i}&offset=${jb.o}`,f.slice(jb.o,jb.o+jb.len),n=>{done+=n-sent;fdone[jb.i]+=n-sent;sent=n;bump(jb.i,f);tick()});
-          done+=jb.len-sent;fdone[jb.i]+=jb.len-sent;break}
-        catch(e){done-=sent;fdone[jb.i]-=sent;if(ctrl.signal.aborted||t>=4)throw e;await new Promise(r=>setTimeout(r,600*(t+1)))}}
-      bump(jb.i,f);tick()}};
-    const bump=(i,f)=>{const el=$('fp'+i);if(el)el.style.width=Math.min(100,fdone[i]/(f.size||1)*100)+'%'};
-    await Promise.all(Array.from({length:Math.min(PARALLEL,jobs.length||1)},worker));
-    const fin=await j(`${API}?action=complete&code=${code}&owner=${owner}`,{method:'POST',signal:ctrl.signal});current={code,owner};watchScan(code,$('sendScan'),fin,owner);
-    done=total;tick();files.forEach((_,i)=>{const el=$('fp'+i);if(el)el.style.width='100%'});
-    const link=location.origin+location.pathname.replace(/index\.html$/,'')+'?code='+code;
-    $('codeOut').textContent=code;$('linkOut').value=link;$('result').classList.remove('hidden');drawQR(link);
-    $('expOut').textContent='⏱ Expires '+new Date(fin.expires).toLocaleString();$('lockOut').textContent=fin.locked?'🔒 PIN protected':'';$('pinIn').value='';
-    $('sendMsg').className='msg ok';$('sendMsg').textContent=`✓ ${files.length} file(s) uploaded in ${ftime((performance.now()-t0)/1000)}`;
-    const h=store.get('hist',[]);h.unshift({code,owner,name:files.length>1?`${files[0].name} +${files.length-1} more`:files[0].name,size:total,t:Date.now()});store.set('hist',h.slice(0,10));renderHist();files=[];render();
-    toast('Upload complete');
-  }catch(e){$('sendMsg').className='msg err';$('sendMsg').textContent=ctrl.signal.aborted?'Upload cancelled.':'Error: '+e.message}
-  busy=false;lockWake(false);document.title=baseTitle;$('cancelBtn').classList.add('hidden');render();
-};
+    const r=await uploadAll(list,{minutes:+$('expSel').value||60,pin:$('pinIn').value,deleteAfterDownload:$('dadChk').checked},ctrl.signal,
+      (done,total,el)=>{const p=Math.min(100,done/total*100);$('barI').style.width=p+'%';$('pct').textContent=p.toFixed(1)+'%';document.title=Math.floor(p)+'% · '+baseTitle;
+        if(el>.3){const s=done/el;$('speed').textContent=fmt(s)+'/s';$('eta').textContent=ftime((total-done)/s)}},
+      (i,p)=>{const el=$('fp'+i);if(el)el.style.width=Math.min(100,p*100)+'%'});
+    current={code:r.code,owner:r.owner};
+    const link=baseUrl()+'?code='+r.code;
+    $('codeOut').textContent=r.code;$('linkOut').value=link;$('result').classList.remove('hidden');drawQR(link);
+    $('expOut').dataset.exp=r.fin.expires;$('expOut').textContent=left(r.fin.expires);$('lockOut').textContent=r.fin.locked?'🔒 PIN protected':'';$('pinIn').value='';
+    msg('sendMsg',`✓ ${list.length} file(s) uploaded. Share the code below.`,'ok');
+    const h=store.get('hist',[]);h.unshift({code:r.code,owner:r.owner,name:list.length>1?`${list[0].name} +${list.length-1} more`:list[0].name,size:list.reduce((a,f)=>a+f.size,0),exp:r.fin.expires});store.set('hist',h.slice(0,10));renderHist();
+    files=[];watchSend(r.code,r.owner,r.fin);toast('Upload complete')
+  }catch(e){msg('sendMsg',ctrl.signal.aborted?'Upload cancelled.':'Error: '+e.message,'err')}
+  busy=false;lockWake(false);document.title=baseTitle;$('cancelBtn').classList.add('hidden');render()};
 $('cancelBtn').onclick=()=>ctrl&&ctrl.abort();
-function xhrPost(url,body,onProg){return new Promise((res,rej)=>{const x=new XMLHttpRequest();x.open('POST',url);x.setRequestHeader('Content-Type','application/octet-stream');if(AK)x.setRequestHeader('X-Access-Key',AK);
-  x.upload.onprogress=e=>onProg(e.loaded);x.onload=()=>{let d={};try{d=JSON.parse(x.responseText)}catch{}x.status===200&&d.ok?res(d):rej(new Error(d.error||('HTTP '+x.status+' [step: chunk]')))};
-  x.onerror=()=>rej(new Error('Network error'));x.onabort=()=>rej(new Error('Cancelled'));const ab=()=>x.abort();ctrl.signal.addEventListener('abort',ab,{once:true});x.send(body)})}
-const SCAN={pending:'Waiting for scan',scanning:'Scanning…',clean:'✓ Virus-free',threat:'⚠ Threat blocked',skipped:'Not scanned'};
-const badge=f=>`<span class="sb ${f.scan}" title="${esc(f.scanDetail||'')}">${SCAN[f.scan]||f.scan}</span>${f.risky&&f.scan!=='threat'?'<span class="sb risky" title="Programs and scripts can harm your PC. Only open if you trust the sender.">Executable</span>':''}`;
-const scanning=d=>d.files.some(f=>f.scan==='pending'||f.scan==='scanning');
-function watchScan(code,box,d,owner){clearTimeout(box._t);if(current&&current.code===code){$('dlCount').textContent='⬇ '+(d.downloads||0)+' download(s)'}
-  const draw=d=>{const c=d.files.reduce((a,f)=>(a[f.scan]=(a[f.scan]||0)+1,a),{});
-    box.innerHTML=`<div class="summary" style="margin:0 0 6px"><span>🛡️ Security check</span><span>${scanning(d)?'in progress…':'finished'}</span></div>`+
-      d.files.slice(0,50).map(f=>`<div class="item"><div class="nm"><div>${esc(f.name)}</div>${badge(f)}</div></div>`).join('')+(c.threat?`<div class="msg err">${c.threat} file(s) blocked by Microsoft Defender.</div>`:'')};
-  draw(d);if(current&&current.code===code)box._t=setTimeout(async()=>{try{watchScan(code,box,await j(`${API}?action=info&code=${code}&owner=${owner}`),owner)}catch{}},scanning(d)?1500:5000)}
 $('copyBtn').onclick=()=>copy($('linkOut').value);
 $('codeOut').onclick=()=>copy($('codeOut').textContent);
-window.addEventListener('beforeunload',e=>{if(busy){e.preventDefault();e.returnValue=''}});
-
-// OTP input
-const otp=$('otp');for(let i=0;i<6;i++){const x=document.createElement('input');x.className='f';x.maxLength=1;x.autocomplete='off';x.inputMode='text';otp.appendChild(x)}
-const boxes=[...otp.children];
-const getCode=()=>boxes.map(b=>b.value).join('').toUpperCase();
-const setCode=c=>{c=(c||'').replace(/[^a-z0-9]/gi,'').toUpperCase().slice(0,6);boxes.forEach((b,i)=>b.value=c[i]||'');(boxes[c.length]||boxes[5]).focus()};
-boxes.forEach((b,i)=>{
-  b.oninput=()=>{const v=b.value.replace(/[^a-z0-9]/gi,'');if(v.length>1){setCode(getCode().slice(0,i)+v);return}b.value=v.toUpperCase();if(v&&i<5)boxes[i+1].focus();if(getCode().length===6)receive()};
-  b.onkeydown=e=>{if(e.key==='Backspace'&&!b.value&&i)boxes[i-1].focus();if(e.key==='Enter')receive()};
-  b.onpaste=e=>{e.preventDefault();setCode(e.clipboardData.getData('text'));if(getCode().length===6)receive()};
-});
-$('pasteBtn').onclick=async()=>{try{setCode(await navigator.clipboard.readText());if(getCode().length===6)receive()}catch{toast('Paste not allowed — type the code')}};
-
-// receive
-let lastCode='';
-async function receive(){
-  const code=getCode();$('recvMsg').className='msg';$('recvMsg').textContent='';
-  if(code.length!==6){$('recvMsg').className='msg err';$('recvMsg').textContent='Enter the full 6-character code.';return}
-  if(code===lastCode&&$('files').innerHTML)return;lastCode=code;$('files').innerHTML='';
-  $('recvBtn').disabled=true;
-  try{const d=await j(`${API}?action=info&code=${code}${pinq()}`);$('pinBox').classList.add('hidden');
-    const tot=d.files.reduce((a,f)=>a+f.size,0);
-    $('recvMsg').className='msg ok';$('recvMsg').textContent=`✓ ${d.files.length} file(s) · ${fmt(tot)} · expires ${new Date(d.expires).toLocaleString()}`;
-    drawRecv(code,d);
-  }catch(e){lastCode='';if(e.pin){$('pinBox').classList.remove('hidden');$('recvMsg').className='msg err';$('recvMsg').textContent=recvPin?'Wrong PIN, try again.':'🔒 This transfer is PIN protected.';$('pinRecv').focus()}else{$('recvMsg').className='msg err';$('recvMsg').textContent=e.message}}
-  $('recvBtn').disabled=false;
-}
-$('recvBtn').onclick=receive;
-function drawRecv(code,d){if(lastCode!==code)return;
-  const ok=f=>f.scan==='clean'||f.scan==='skipped',ready=d.files.filter(ok);
-  $('files').innerHTML=d.files.map((f,i)=>`<div class="dl"><span class="item" style="padding:0;border:0;background:none"><span class="ext">${esc(ext(f.name))}</span></span><div class="nm"><div>${esc(f.name)}</div><small>${fmt(f.size)}</small> ${badge(f)}</div>${f.scan==='threat'?'':`<a class="btn${ok(f)?'':' off'}" href="${API}?action=download&code=${code}&file=${i}${pinq()}${akq()}">${ok(f)?'Download':'Scanning…'}</a>`}</div>`).join('')
-    +(ready.length>1?`<button class="btn" id="allBtn" style="width:100%;margin-top:12px">Download all (${ready.length})</button>`:'');
-  const all=$('allBtn');if(all)all.onclick=()=>d.files.forEach((f,i)=>ok(f)&&setTimeout(()=>{const a=document.createElement('a');a.href=`${API}?action=download&code=${code}&file=${i}${pinq()}${akq()}`;a.download='';document.body.appendChild(a);a.click();a.remove()},i*600));
-  clearTimeout(drawRecv._t);if(scanning(d))drawRecv._t=setTimeout(async()=>{try{drawRecv(code,await j(`${API}?action=info&code=${code}${pinq()}`))}catch{}},1500)}
-
-// history
-function renderHist(){const h=store.get('hist',[]).filter(x=>Date.now()-x.t<864e5);
-  $('histBox').classList.toggle('hidden',!h.length);
-  $('hist').innerHTML=h.map((x,i)=>`<div class="h" data-c="${esc(x.code)}"><code>${esc(x.code)}</code><span style="flex:1">${esc(x.name)} · ${fmt(x.size)}</span>${x.owner?`<button class="del" data-i="${i}" title="Stop sharing">×</button>`:''}</div>`).join('')}
-$('hist').onclick=async e=>{const del=e.target.closest('.del');if(del){e.stopPropagation();const h=store.get('hist',[]).filter(x=>Date.now()-x.t<864e5),x=h[+del.dataset.i];if(x&&confirm('Stop sharing '+x.code+'? The files will be deleted.')){await stopShare(x.code,x.owner)}return}const r=e.target.closest('.h');if(r)copy(location.origin+location.pathname.replace(/index\.html$/,'')+'?code='+r.dataset.c)};
-$('histClear').onclick=()=>{store.set('hist',[]);renderHist()};
-renderHist();
-
-// ---- extra features ----
-let current=null,recvPin='',wake=null;const baseTitle=document.title;
-const pinq=()=>recvPin?'&pin='+encodeURIComponent(recvPin):'';
-$('pinGo').onclick=()=>{recvPin=$('pinRecv').value;lastCode='';receive()};
-$('pinRecv').onkeydown=e=>{if(e.key==='Enter')$('pinGo').click()};
-$('addFilesBtn').onclick=()=>!busy&&pick.click();
-$('addFolderBtn').onclick=()=>!busy&&$('pickDir').click();
-$('pickDir').onchange=()=>{addFiles($('pickDir').files);$('pickDir').value=''};
-$('newBtn').onclick=()=>{$('result').classList.add('hidden');$('prog').classList.add('hidden');$('sendScan').innerHTML='';clearTimeout($('sendScan')._t);current=null;$('sendMsg').textContent='';pick.click()};
-$('stopBtn').onclick=async()=>{if(current&&confirm('Stop sharing? The files will be deleted from the server.'))await stopShare(current.code,current.owner)};
-async function stopShare(code,owner){try{await j(`${API}?action=delete&code=${code}&owner=${encodeURIComponent(owner)}`,{method:'POST'})}catch{}
+window.addEventListener('beforeunload',e=>{if(busy||up){e.preventDefault();e.returnValue=''}});
+const SCAN={pending:'Waiting for scan',scanning:'Scanning…',clean:'✓ Virus-free',threat:'⚠ Threat blocked',skipped:'Not scanned'};
+const badge=f=>`<span class="sb ${f.scan}" title="${esc(f.scanDetail||'')}">${SCAN[f.scan]||esc(f.scan)}</span>${f.risky&&f.scan!=='threat'?'<span class="sb risky" title="Programs and scripts can harm your PC. Only open if you trust the sender.">Executable</span>':''}`;
+const scanning=d=>(d.files||[]).some(f=>f.scan==='pending'||f.scan==='scanning');
+function watchSend(code,owner,d){const box=$('sendScan');clearTimeout(box._t);if(!current||current.code!==code)return;
+  if(d.gone||!d.files||!d.files.length){box.innerHTML='';$('dlCount').textContent='';msg('sendMsg','✓ All files were downloaded and deleted from the server.','ok');return}
+  const dl=d.files.reduce((a,f)=>a+(f.downloads||0),0);$('dlCount').textContent='⬇ '+dl+' download(s)';
+  box.innerHTML=`<div class="summary" style="margin:0 0 6px"><span>🛡️ Security check</span><span>${scanning(d)?'in progress…':'finished'}</span></div>`+
+    d.files.slice(0,50).map(f=>`<div class="item"><div class="nm"><div>${esc(f.name)}</div>${badge(f)}${f.downloaded?' <span class="sb clean">Downloaded · deleting</span>':''}</div></div>`).join('');
+  box._t=setTimeout(async()=>{try{watchSend(code,owner,await api('info',{q:`&code=${code}&owner=${encodeURIComponent(owner||'')}`}))}catch(e){if(e.status===404||e.status===410)watchSend(code,owner,{gone:true})}},scanning(d)?1500:4000)}
+$('newBtn').onclick=()=>{$('result').classList.add('hidden');$('prog').classList.add('hidden');$('sendScan').innerHTML='';clearTimeout($('sendScan')._t);current=null;msg('sendMsg');pick.click()};
+$('stopBtn').onclick=async()=>{if(current&&confirm('Stop sharing? The files will be deleted from the server now.'))await stopShare(current.code,current.owner)};
+async function stopShare(code,owner){try{await api('delete',{q:`&code=${code}&owner=${encodeURIComponent(owner||'')}`,body:{}})}catch{}
   store.set('hist',store.get('hist',[]).filter(x=>x.code!==code));renderHist();
-  if(current&&current.code===code){current=null;clearTimeout($('sendScan')._t);$('result').classList.add('hidden');$('sendScan').innerHTML='';$('prog').classList.add('hidden');$('sendMsg').className='msg';$('sendMsg').textContent='Sharing stopped. Files deleted.'}
+  if(current&&current.code===code){current=null;clearTimeout($('sendScan')._t);$('result').classList.add('hidden');$('sendScan').innerHTML='';$('prog').classList.add('hidden');msg('sendMsg','Sharing stopped. Files deleted.')}
   toast('Sharing stopped')}
 function drawQR(text){const box=$('qrOut');box.innerHTML='';try{const q=qrcode(0,'M');q.addData(text);q.make();box.innerHTML=q.createImgTag(4,0)}catch{}}
-async function lockWake(on){try{if(on&&'wakeLock'in navigator)wake=await navigator.wakeLock.request('screen');else if(wake){await wake.release();wake=null}}catch{}}
-(async()=>{try{const p=await j(API+'?action=ping');$('srvStatus').textContent=(p.scanner?'🛡️ Defender active':'Online')+(p.freeSpace>0?' · '+fmt(p.freeSpace)+' free':'')}catch{$('srvStatus').textContent='Server API not reachable';document.querySelector('.dot').style.background='var(--err)'}})();
-const qc=new URLSearchParams(location.search).get('code');if(qc){setCode(qc);receive()}
+
+// ---------- receive ----------
+const otp=$('otp');for(let i=0;i<6;i++){const x=document.createElement('input');x.className='f';x.maxLength=1;x.autocomplete='off';x.inputMode='numeric';x.pattern='[0-9]*';x.setAttribute('aria-label','Digit '+(i+1));otp.appendChild(x)}
+const boxes=[...otp.children];
+const getCode=()=>boxes.map(b=>b.value).join('');
+const setCode=c=>{c=(c||'').replace(/\D/g,'').slice(0,6);boxes.forEach((b,i)=>b.value=c[i]||'');(boxes[Math.min(c.length,5)]).focus()};
+boxes.forEach((b,i)=>{
+  b.oninput=()=>{const v=b.value.replace(/\D/g,'');if(v.length>1){setCode(getCode().slice(0,i)+v);if(getCode().length===6)receive();return}b.value=v;if(v&&i<5)boxes[i+1].focus();if(getCode().length===6)receive()};
+  b.onkeydown=e=>{if(e.key==='Backspace'&&!b.value&&i)boxes[i-1].focus();if(e.key==='Enter')receive();if(e.key==='ArrowLeft'&&i)boxes[i-1].focus();if(e.key==='ArrowRight'&&i<5)boxes[i+1].focus()};
+  b.onpaste=e=>{e.preventDefault();setCode(e.clipboardData.getData('text'));if(getCode().length===6)receive()}});
+$('pasteBtn').onclick=async()=>{try{setCode(await navigator.clipboard.readText());if(getCode().length===6)receive()}catch{toast('Paste not allowed — type the code')}};
+let lastCode='',recvPin='';
+const pinq=()=>recvPin?'&pin='+encodeURIComponent(recvPin):'';
+async function receive(){
+  const code=getCode();msg('recvMsg');
+  if(code.length!==6)return msg('recvMsg','Enter the full 6-digit code.','err');
+  if(code!==lastCode)recvPin='';lastCode=code;$('files').innerHTML='';$('recvHead').innerHTML='';
+  $('recvBtn').disabled=true;
+  try{const d=await api('info',{q:`&code=${code}${pinq()}`});$('pinBox').classList.add('hidden');drawRecv(code,d)}
+  catch(e){if(e.code==='PIN_REQUIRED'){$('pinBox').classList.remove('hidden');msg('recvMsg',recvPin?'Wrong PIN / password, try again.':'🔒 Protected — enter the PIN or folder password.','err');$('pinRecv').value='';$('pinRecv').focus()}else msg('recvMsg',e.message,'err')}
+  $('recvBtn').disabled=false}
+$('recvBtn').onclick=receive;
+$('pinGo').onclick=()=>{recvPin=$('pinRecv').value;receive()};
+$('pinRecv').onkeydown=e=>{if(e.key==='Enter')$('pinGo').click()};
+function drawRecv(code,d){if(lastCode!==code)return;
+  const ok=f=>f.scan==='clean'||f.scan==='skipped',ready=d.files.filter(ok),tot=d.files.reduce((a,f)=>a+f.size,0);
+  $('recvHead').innerHTML=d.kind==='folder'?`<div class="item" style="margin-top:12px"><span class="ext">📁</span><div class="nm"><div>${esc(d.name)}</div><small>Shared folder by ${esc(d.owner)} · ${d.files.length} file(s) · ${fmt(tot)}</small></div></div>`:'';
+  if(!d.files.length){$('files').innerHTML='<div class="empty">No files right now. Files appear here when the owner uploads them.</div>';msg('recvMsg');return}
+  msg('recvMsg',`✓ ${d.files.length} file(s) · ${fmt(tot)}`,'ok');
+  $('files').innerHTML=d.files.map(f=>`<div class="dl"><span class="ext">${esc(ext(f.name))}</span><div class="nm"><div>${esc(f.name)}</div><small>${fmt(f.size)} · deletes in ${tm(f.expires)}${f.deleteAfterDownload?' · one-time download':''}</small> ${badge(f)}</div>${f.scan==='threat'?'':`<a class="btn${ok(f)?'':' off'}" data-id="${f.id}" href="${API}?action=download&code=${code}&file=${f.id}${pinq()}${akq()}">${ok(f)?'Download':'Scanning…'}</a>`}</div>`).join('')
+    +(ready.length>1?`<button class="btn" id="allBtn" style="width:100%;margin-top:12px">Download all (${ready.length})</button>`:'');
+  const all=$('allBtn');if(all)all.onclick=()=>ready.forEach((f,i)=>setTimeout(()=>{const a=document.createElement('a');a.href=`${API}?action=download&code=${code}&file=${f.id}${pinq()}${akq()}`;a.download='';document.body.appendChild(a);a.click();a.remove()},i*700));
+  clearTimeout(drawRecv._t);if(scanning(d))drawRecv._t=setTimeout(async()=>{try{drawRecv(code,await api('info',{q:`&code=${code}${pinq()}`}))}catch{}},1500)}
+
+// history
+function renderHist(){const h=store.get('hist',[]).filter(x=>x.exp&&new Date(x.exp)>Date.now());store.set('hist',h);
+  $('histBox').classList.toggle('hidden',!h.length);
+  $('hist').innerHTML=h.map((x,i)=>`<div class="h" data-c="${esc(x.code)}"><code>${esc(x.code)}</code><span style="flex:1">${esc(x.name)} · ${fmt(x.size)} · ${tm(x.exp)}</span>${x.owner?`<button class="del" data-i="${i}" title="Stop sharing">×</button>`:''}</div>`).join('')}
+$('hist').onclick=async e=>{const del=e.target.closest('.del');const h=store.get('hist',[]);
+  if(del){e.stopPropagation();const x=h[+del.dataset.i];if(x&&confirm('Stop sharing '+x.code+'? The files will be deleted.'))await stopShare(x.code,x.owner);return}
+  const r=e.target.closest('.h');if(r)copy(baseUrl()+'?code='+r.dataset.c)};
+$('histClear').onclick=()=>{store.set('hist',[]);renderHist()};
+
+// ---------- my folders ----------
+let folderTarget=null,up=null;
+async function loadFolders(){if(!ME.user)return;
+  try{const d=await api('folders');const el=$('folderList');
+    if(!d.folders.length){el.innerHTML='<div class="empty">No folders yet. Create one above, upload files, and share the folder ID + password.</div>';return}
+    el.innerHTML=d.folders.map(f=>`<section class="card folder" data-code="${f.code}">
+      <div class="top"><h3>📁 ${esc(f.name)}</h3><div class="tools">
+        <button class="chip" data-a="copy" title="Copy share link">ID ${f.code} ⧉</button>
+        <button class="btn" data-a="upload">⬆ Upload</button>
+        <button class="btn ghost" data-a="edit">✎ Rename / password</button>
+        <button class="btn ghost" data-a="del" style="color:var(--err)">🗑</button></div></div>
+      <div class="inline" style="margin-top:12px;max-width:420px"><label class="muted" style="flex:0 0 auto;font-size:12px">Upload with timer</label><select class="f expSel folderExp"></select></div>
+      ${f.files.length?`<table class="ftable">${f.files.map(x=>`<tr><td class="n" title="${esc(x.name)}">${esc(x.name)}<br>${badge(x)}</td><td class="r hide-sm muted">${fmt(x.size)}</td><td class="r hide-sm muted">⬇ ${x.downloads}</td><td class="r">${tm(x.expires)}</td><td class="r"><button class="x" data-a="rm" data-id="${x.id}" title="Delete file">×</button></td></tr>`).join('')}</table>`:'<div class="empty">Empty folder. Drop files here or press Upload.</div>'}
+    </section>`).join('');
+    el.querySelectorAll('.folderExp').forEach(s=>fillExp(s,ME.maxMinutes,ME.admin,store.get('fexp',60)));
+    clearTimeout(loadFolders._t);if(d.folders.some(f=>scanning(f)))loadFolders._t=setTimeout(loadFolders,2000);
+  }catch(e){$('folderList').innerHTML=`<div class="empty">${esc(e.message)}</div>`}}
+$('nfBtn').onclick=async()=>{try{const f=await api('folder-create',{body:{name:$('nfName').value,password:$('nfPass').value}});$('nfName').value=$('nfPass').value='';msg('nfMsg',`✓ Folder created. ID ${f.code}`,'ok');loadFolders()}catch(e){msg('nfMsg',e.message,'err')}};
+$('folderList').addEventListener('click',async e=>{const b=e.target.closest('[data-a]');if(!b)return;const card=b.closest('.folder'),code=card.dataset.code,name=card.querySelector('h3').textContent.replace('📁 ','');
+  const a=b.dataset.a;
+  if(a==='copy')copy(baseUrl()+'?code='+code);
+  if(a==='upload'){folderTarget=card;$('folderPick').click()}
+  if(a==='del'&&confirm(`Delete folder "${name}" and all its files?`)){await api('folder-delete',{body:{code}});toast('Folder deleted');loadFolders()}
+  if(a==='rm'&&confirm('Delete this file now?')){await api('file-delete',{body:{code,ids:[+b.dataset.id]}});loadFolders()}
+  if(a==='edit')ask('Folder settings',[{k:'name',label:'Folder name',value:name},{k:'password',label:'New folder password (leave empty to keep)',type:'password',ph:'4+ characters'}],'Save',async v=>{await api('folder-update',{body:{code,name:v.name,password:v.password||null}});toast('Saved');loadFolders()})});
+$('folderList').addEventListener('change',e=>{if(e.target.classList.contains('folderExp'))store.set('fexp',+e.target.value||60)});
+['dragover','drop'].forEach(t=>$('folderList').addEventListener(t,e=>{const card=e.target.closest('.folder');if(!card)return;e.preventDefault();if(t==='drop'&&e.dataTransfer.files.length){folderTarget=card;uploadToFolder([...e.dataTransfer.files])}}));
+$('folderPick').onchange=()=>{const l=[...$('folderPick').files];$('folderPick').value='';if(l.length)uploadToFolder(l)};
+async function uploadToFolder(list){if(up)return toast('An upload is already running');if(!folderTarget)return;
+  list=list.filter(f=>f.size<=MAX);if(!list.length)return;
+  const code=folderTarget.dataset.code,minutes=+folderTarget.querySelector('.folderExp').value||60;
+  up=new AbortController();$('tray').classList.remove('hidden');$('trayTitle').textContent=`Uploading ${list.length} file(s)…`;lockWake(true);
+  try{await uploadAll(list,{code,minutes},up.signal,(done,total,el)=>{const p=Math.min(100,done/total*100);$('trayBar').style.width=p+'%';$('trayPct').textContent=p.toFixed(1)+'%';document.title=Math.floor(p)+'% · '+baseTitle;
+      if(el>.3){const s=done/el;$('traySpeed').textContent=fmt(s)+'/s · '+ftime((total-done)/s)+' left'}});
+    toast('Upload complete');$('trayTitle').textContent='✓ Upload complete'}
+  catch(e){$('trayTitle').textContent=up.signal.aborted?'Upload cancelled':'Error: '+e.message}
+  up=null;lockWake(false);document.title=baseTitle;loadFolders();setTimeout(()=>{if(!up)$('tray').classList.add('hidden')},3000)}
+$('trayCancel').onclick=e=>{e.preventDefault();up&&up.abort()};
+
+// ---------- admin ----------
+async function loadAdmin(){if(!ME.admin)return;
+  try{const d=await api('admin-overview');
+    $('admStats').innerHTML=[['💾 Free disk',fmt(Math.max(0,d.disk.free))],['📦 Stored files',fmt(d.disk.used)+' · '+d.files],['📤 Active sends',d.activeSends],['🛡️ Threats blocked',d.threats]].map(([k,v])=>`<div class="stat"><small>${k}</small><b>${esc(v)}</b></div>`).join('');
+    const m=d.settings.userMaxMinutes,u=[525600,1440,60,1].find(x=>m%x===0);$('admMaxUnit').value=u;$('admMaxNum').value=m/u;$('admSignup').checked=d.settings.allowSignup;
+    $('admUsers').innerHTML=`<tr class="muted"><td>User</td><td class="hide-sm">Folders</td><td class="hide-sm">Storage</td><td class="hide-sm">Last login</td><td></td></tr>`+d.users.map(x=>`<tr data-u="${esc(x.name)}"><td class="n">${esc(x.name)} ${x.admin?'<span class="sb clean">admin</span>':''}</td><td class="hide-sm">${x.folders}</td><td class="hide-sm">${fmt(x.storage)}</td><td class="hide-sm muted">${x.lastLogin?new Date(x.lastLogin).toLocaleString():'—'}</td>
+      <td class="r">${x.name===ME.user?'<span class="muted">you</span>':`<div class="tools" style="justify-content:flex-end"><button class="btn ghost" data-u-a="reset">Reset password</button><button class="btn ghost" data-u-a="admin">${x.admin?'Remove admin':'Make admin'}</button><button class="btn ghost" data-u-a="del" style="color:var(--err)">Delete</button></div>`}</td></tr>`).join('')}
+  catch(e){msg('admMsg',e.message,'err')}}
+$('admRefresh').onclick=loadAdmin;
+$('admSave').onclick=async()=>{try{const mins=Math.round(+$('admMaxNum').value*+$('admMaxUnit').value);await api('admin-settings',{body:{userMaxMinutes:mins,allowSignup:$('admSignup').checked}});msg('admMsg','✓ Settings saved','ok');refreshMe()}catch(e){msg('admMsg',e.message,'err')}};
+$('admUsers').addEventListener('click',async e=>{const b=e.target.closest('[data-u-a]');if(!b)return;const name=b.closest('tr').dataset.u,a=b.dataset.uA;
+  try{if(a==='reset'&&confirm('Reset password for '+name+'?')){const d=await api('admin-reset-user',{body:{username:name}});showKey(d.tempPassword,'Temporary password for '+name+'. Give it to the user; they should change it after logging in.')}
+    if(a==='admin'&&confirm('Change admin rights for '+name+'?')){await api('admin-toggle-admin',{body:{username:name}});loadAdmin()}
+    if(a==='del'&&confirm('Delete user '+name+' and ALL their folders and files?')){await api('admin-delete-user',{body:{username:name}});loadAdmin()}}
+  catch(er){toast(er.message)}});
+
+// ---------- start ----------
+async function refreshMe(){try{setMe(await api('me'))}catch{setMe(null)}}
+(async()=>{
+  try{const p=await api('ping');$('srvStatus').textContent=(p.scanner?'🛡️ Defender active':'Online')+(p.freeSpace>0?' · '+fmt(p.freeSpace)+' free':'')}
+  catch{$('srvStatus').textContent='Server API not reachable';document.querySelector('.dot').style.background='var(--err)'}
+  await refreshMe();renderHist();
+  const qc=new URLSearchParams(location.search).get('code');if(qc){setCode(qc);receive()}
+  const h=location.hash.slice(1);if(h==='folders'||(h==='admin'&&ME.admin))show(h)})();
 </script>
+
 </body>
 </html>

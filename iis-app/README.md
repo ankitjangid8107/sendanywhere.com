@@ -25,11 +25,14 @@ Right-click **setup-safe.bat** → Run as administrator (pure batch, no PowerShe
 - Downloads are always sent as attachments, and security headers are set. Nothing loads from the internet, so the app works fully offline.
 
 ## Features
-- Send files or whole folders, up to 50 GB per file, 6 parallel chunks with live speed/ETA and progress in the tab title
-- Choose expiry (1 h / 6 h / 24 h / 3 days) and an optional PIN for a transfer
-- QR code + link for phones, download counter, "Stop sharing" deletes files instantly
-- Microsoft Defender scan with live status; only infected files are blocked
-- Dark/light theme, mobile layout, works fully offline (no CDN)
+- **Quick send**: files or whole folders, up to 50 GB per file, 6 parallel chunks with live speed/ETA. You get a **6-digit numeric code**, a link and a QR code.
+- **Auto-delete**: you choose 5 min to 1 hour (the user limit). Files can also delete themselves right after download (on by default). Nothing stays on the server PC longer than the timer.
+- **Accounts (no SQL)**: sign up / log in / change password / reset password with a recovery key. The admin can also reset any user's password.
+- **Password folders**: logged-in users create folders with a password. Anyone with the 6-digit folder ID and the password can download the files. Each file is deleted when its timer ends (max 1 hour for users).
+- **Admin panel**: the first admin is created on the server PC (http://localhost). The admin can set the user time limit, turn sign-ups on or off, manage users and see disk usage. Admins can keep their own files for minutes, hours, days or years.
+- Microsoft Defender scan with live status (only infected files are blocked), PIN for quick sends, brute-force lockout, dark/light theme, mobile layout, fully offline.
+
+All data is stored in `iis-app\App_Data` (users and settings are JSON files; uploads are in `boxes`). A background job runs every minute and deletes expired files.
 
 ## Port forwarding / internet (optional, off by default)
 In `iis-app/web.config` set `AllowInternet` to `true` and `AccessKey` to a long secret (8+ chars). Internet users are asked for the key once; LAN users are not. Wrong codes, PINs and keys are rate-limited per IP. Use a PIN on every transfer you share over the internet.
