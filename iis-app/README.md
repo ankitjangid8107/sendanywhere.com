@@ -1,5 +1,7 @@
 # SendAnywhere LAN — IIS edition
 
+Designed & developed by [AJ System Soft](https://www.ajsystemsoft.in) · AI tools: [tvc0.lovable.app](https://tvc0.lovable.app) · [tvc0.pro](https://tvc0.pro) · [WhatsApp channel](https://whatsapp.com/channel/0029VbC2DdxJUM2bvG9gBy29)
+
 Local-network file transfer. **No SQL Server, no Node.js, no build step.** Pure IIS + ASP.NET (.NET Framework 4.5+, built into Windows).
 
 ## Setup (any Windows PC)
